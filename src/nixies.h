@@ -1,5 +1,5 @@
 #ifndef NIXIES_H
-#define NIXIXES_H
+#define NIXIES_H
 
 #include <Arduino.h>
 
