@@ -6,7 +6,6 @@
 .vscode/ipch
 
 # Folders
-test/
 include/
 
 # Binaries
