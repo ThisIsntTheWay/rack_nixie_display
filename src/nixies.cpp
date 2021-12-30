@@ -17,7 +17,7 @@ int optos[] = {19, 18, 4, 15, 32, 33};    // 1 - 4: IN-4, 5 & 6: INS-1
     @param SH SH pin of shift registers.
 */
 /**************************************************************************/
-Nixies::Nixies(byte DS, byte ST, byte SH) {
+Nixies::Nixies(int DS, int ST, int SH) {
     this->SR_DS = DS;
     this->SR_ST = ST;
     this->SR_SH = SH;

@@ -5,7 +5,7 @@
 
 class Nixies {
     public:
-        Nixies(byte, byte, byte);
+        Nixies(int, int, int);
 
         void setDisplay(int[4]);
         void setIndicator(int, bool);
