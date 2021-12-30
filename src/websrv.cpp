@@ -1,7 +1,7 @@
 #include <websrv.h>
-#include <displayController.h>
 
 AsyncWebServer server(80);
+DisplayController displayController;
 
 AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
     /*  Sample payload
@@ -41,18 +41,18 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     JsonVariant indicators = data["indicators"];
     if (indicators) {
         if (indicators["1"]) {
-            indicators[0] = indicators["1"].as<bool>();
+            displayController.indicators[0] = indicators["1"].as<bool>();
         }
         if (indicators["2"]) {
-            indicators[1] = indicators["2"].as<bool>();
+            displayController.indicators[1] = indicators["2"].as<bool>();
         }    
     }
 
     int i = 0;
     for (JsonPair tube : data["tubes"].as<JsonObject>()) {
-        tubeVals[i][0] = atol(tube.key().c_str());
-        tubeVals[i][1] = tube.value()["val"];
-        tubeVals[i][2] = tube.value()["pwm"];
+        displayController.tubeVals[i][0] = atol(tube.key().c_str());
+        displayController.tubeVals[i][1] = tube.value()["val"];
+        displayController.tubeVals[i][2] = tube.value()["pwm"];
         i++;
     }
 
@@ -63,10 +63,10 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
         do {
             swapDone = false;
             for (int z = 0; z < (boundary - 1); z++) {
-                if (tubeVals[x][z] > tubeVals[x][z + 1]) {
-                    int temp = tubeVals[x][z];
-                    tubeVals[x][z] = tubeVals[x][z + 1];
-                    tubeVals[x][z + 1] = temp;
+                if (displayController.tubeVals[x][z] > displayController.tubeVals[x][z + 1]) {
+                    int temp = displayController.tubeVals[x][z];
+                    displayController.tubeVals[x][z] = displayController.tubeVals[x][z + 1];
+                    displayController.tubeVals[x][z + 1] = temp;
 
                     swapDone = true;
                 }
@@ -76,7 +76,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
 
     JsonVariant ledPWM = data["leds"];
     if (ledPWM) {
-
+        displayController.ledPWM = ledPWM;
     }
 
     // Serialize JSON
@@ -118,25 +118,25 @@ void webServerStaticContent() {
     
         StaticJsonDocument<200> responseBody;
         JsonObject objInd = responseBody.createNestedObject("indicators");
-            objInd["1"] = indicators[0];
-            objInd["2"] = indicators[1];
+            objInd["1"] = displayController.indicators[0];
+            objInd["2"] = displayController.indicators[1];
 
         // If tubeVals were sorted from the beginning, then String(tubeVals[x][y]) wouldn't be necessary.
         JsonObject objTub = responseBody.createNestedObject("tubes");
-            JsonObject t1 = objTub.createNestedObject(String(tubeVals[0][0]));
-                t1["val"] = tubeVals[0][1];
-                t1["pwm"] = tubeVals[0][2];
-            JsonObject t2 = objTub.createNestedObject(String(tubeVals[1][0]));
-                t2["val"] = tubeVals[1][1];
-                t2["pwm"] = tubeVals[1][2];
-            JsonObject t3 = objTub.createNestedObject(String(tubeVals[2][0]));
-                t3["val"] = tubeVals[2][1];
-                t3["pwm"] = tubeVals[2][2];
-            JsonObject t4 = objTub.createNestedObject(String(tubeVals[3][0]));
-                t4["val"] = tubeVals[3][1];
-                t4["pwm"] = tubeVals[3][2];
+            JsonObject t1 = objTub.createNestedObject(String(displayController.tubeVals[0][0]));
+                t1["val"] = displayController.tubeVals[0][1];
+                t1["pwm"] = displayController.tubeVals[0][2];
+            JsonObject t2 = objTub.createNestedObject(String(displayController.tubeVals[1][0]));
+                t2["val"] = displayController.tubeVals[1][1];
+                t2["pwm"] = displayController.tubeVals[1][2];
+            JsonObject t3 = objTub.createNestedObject(String(displayController.tubeVals[2][0]));
+                t3["val"] = displayController.tubeVals[2][1];
+                t3["pwm"] = displayController.tubeVals[2][2];
+            JsonObject t4 = objTub.createNestedObject(String(displayController.tubeVals[3][0]));
+                t4["val"] = displayController.tubeVals[3][1];
+                t4["pwm"] = displayController.tubeVals[3][2];
 
-        responseBody["leds"] = ledPWM;
+        responseBody["leds"] = displayController.ledPWM;
 
         serializeJson(responseBody, *response);
         request->send(response);

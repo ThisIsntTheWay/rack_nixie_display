@@ -13,9 +13,12 @@
 #include <Arduino.h>
 #include <nixies.h>
 
-int tubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
-bool indicators[2] = {true, true};
-int ledPWM;
+class DisplayController {
+    public:
+        static int tubeVals[4][3];
+        static bool indicators[2];
+        static int ledPWM;
+};
 
 void taskSetDisplay(void* parameter);
 void taskSetIndicators(void* parameter);

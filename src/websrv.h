@@ -5,6 +5,7 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncJson.h>
 #include <LITTLEFS.h>
+#include <displayController.h>
 
 void webServerAPIs();
 void webServerStaticContent();
