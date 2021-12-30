@@ -1,10 +1,6 @@
 #include <displayController.h>
 
-Nixies nixies;
-
-int tubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
-int ledVals[4][2] = {{1, 255}, {1, 255}, {1, 255}, {1, 255}};
-bool indicators[2] = {true, true};
+Nixies nixies(DS_PIN, ST_PIN, SH_PIN);
 
 void taskSetDisplay(void* parameter) {
     int t[4];
