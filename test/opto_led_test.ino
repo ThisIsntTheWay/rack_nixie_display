@@ -22,8 +22,8 @@ void setup() {
 
    ledcSetup(0, 100, 8);
    
-   int optos[4] = {19, 18, 4, 15};
-   for (int i = 0; i <= 3; i++) {
+   int optos[6] = {19, 18, 4, 15, 32, 33};
+   for (int i = 0; i <= 5; i++) {
     int o = optos[i];
     Serial.printf("Setting up opto %d on %d.\n", i, o);
     pinMode(o, OUTPUT);
