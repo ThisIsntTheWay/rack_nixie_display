@@ -3,9 +3,9 @@
 AsyncWebServer server(80);
 
 // Vars
-int tubeVals[4][3];
-int ledVals[4][2];
-bool indicators[2];
+int tubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
+int ledVals[4][2] = {{1, 255}, {1, 255}, {1, 255}, {1, 255}};
+bool indicators[2] = {true, true};
 
 AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
     /*  Sample payload
