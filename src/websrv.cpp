@@ -1,11 +1,7 @@
 #include <websrv.h>
+#include <displayController.h>
 
 AsyncWebServer server(80);
-
-// Vars
-int tubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
-int ledVals[4][2] = {{1, 255}, {1, 255}, {1, 255}, {1, 255}};
-bool indicators[2] = {true, true};
 
 AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
     /*  Sample payload
@@ -32,12 +28,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
                     "pwm": 255
                 }
             },
-            "leds": {
-                "1": 255,
-                "2": 255,
-                "3": 255,
-                "4": 255
-            }
+            "leds": 255
         }
     */
 
@@ -57,7 +48,6 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
         }    
     }
 
-    // TODO: Sort array!
     int i = 0;
     for (JsonPair tube : data["tubes"].as<JsonObject>()) {
         tubeVals[i][0] = atol(tube.key().c_str());
@@ -66,12 +56,27 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
         i++;
     }
 
-    // TODO: Sort array!
-    i = 0;
-    for (JsonPair led : data["led"].as<JsonObject>()) {
-        ledVals[i][0] = atol(led.key().c_str());
-        ledVals[i][1] = led.value().as<int>();
-        i++;
+    //https://forum.arduino.cc/t/2d-array-bubblesorting/627032/3
+    int boundary = 4;
+    for (int x = 0; x < boundary; x++) {
+        bool swapDone;
+        do {
+            swapDone = false;
+            for (int z = 0; z < (boundary - 1); z++) {
+                if (tubeVals[x][z] > tubeVals[x][z + 1]) {
+                    int temp = tubeVals[x][z];
+                    tubeVals[x][z] = tubeVals[x][z + 1];
+                    tubeVals[x][z + 1] = temp;
+
+                    swapDone = true;
+                }
+            }
+        } while (swapDone);
+    }
+
+    JsonVariant ledPWM = data["leds"];
+    if (ledPWM) {
+
     }
 
     // Serialize JSON
@@ -131,10 +136,7 @@ void webServerStaticContent() {
                 t4["val"] = tubeVals[3][1];
                 t4["pwm"] = tubeVals[3][2];
 
-        JsonObject objLed = responseBody.createNestedObject("leds");
-            for (int i = 0; i <= 3; i++) {
-                objLed[String(ledVals[i][0])] = ledVals[i][1];
-            }
+        responseBody["leds"] = ledPWM;
 
         serializeJson(responseBody, *response);
         request->send(response);
