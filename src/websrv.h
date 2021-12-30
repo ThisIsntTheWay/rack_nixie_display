@@ -9,8 +9,5 @@
 
 void webServerAPIs();
 void webServerStaticContent();
-void serveContent(AsyncWebServerRequest, String, bool);
-
-int sort_desc(const void *cmp1, const void *cmp2);
 
 #endif
