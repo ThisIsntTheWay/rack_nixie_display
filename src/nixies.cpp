@@ -3,8 +3,7 @@
 /*  -------------------------------------
                 VARS
     ------------------------------------- */
-int oPins[] = {1,2,3,4};    // IN-4 optos
-int iPins[] = {1,2};        // INS-1 optos
+int optos[] = {19, 18, 4, 15, 32, 33};    // 1 - 4: IN-4, 5 & 6: INS-1
 
 /*  -------------------------------------
                 MAIN
@@ -30,8 +29,9 @@ Nixies::Nixies(byte DS, byte ST, byte SH) {
     // Set up ledC, creating a channel for each opto
     Serial.println(F("[i] Nixie: Setting up LED controller..."));
 
-    for (int i = 0; i < 4; i++) {
-        int p = oPins[i];
+    int aSize = sizeof(optos)/sizeof(optos[0]);
+    for (int i = 0; i < aSize; i++) {
+        int p = optos[i];
 
         pinMode(p, OUTPUT);
         
@@ -39,9 +39,16 @@ Nixies::Nixies(byte DS, byte ST, byte SH) {
         ledcAttachPin(p, i);
     }
 
-    // Indicator pins
-    pinMode(iPins[0], OUTPUT);
-    pinMode(iPins[1], OUTPUT);
+    this->ready = true;
+}
+
+/**************************************************************************/
+/*!
+    @brief Returns true if nixies have been set up properly.
+*/
+/**************************************************************************/
+bool Nixies::isReady() {
+    return this->ready;
 }
 
 /**************************************************************************/
@@ -70,7 +77,7 @@ void Nixies::blankDisplay() {
     digitalWrite(this->SR_ST, 1);
 
     // Turn anode(s) off to prevent floating cathodes
-    int aSize = sizeof(oPins)/sizeof(oPins[0]);
+    int aSize = sizeof(optos)/sizeof(optos[0]);
     for (int i = 1; i < aSize; i++) {
         ledcWrite(i, 0);
     }
@@ -84,7 +91,7 @@ void Nixies::blankDisplay() {
     @param state TRUE = tube on, FALSE = tube off.
 */
 /**************************************************************************/
-void Nixies::setIndicator(byte which, bool state) {
+void Nixies::setIndicator(int which, bool state) {
     if (which > 2) {
         Serial.printf("[X] setIndicator invalid 'which': %d.\n", which);
         throw;
@@ -100,7 +107,7 @@ void Nixies::setIndicator(byte which, bool state) {
 */
 /**************************************************************************/
 void Nixies::blankTube(int which) {
-    if (which > sizeof(oPins)/sizeof(oPins[0])) {
+    if (which > sizeof(optos)/sizeof(optos)) {
         Serial.printf("[X] blankDisplay invalid 'which': %d.\n", which);
         throw;
     }
