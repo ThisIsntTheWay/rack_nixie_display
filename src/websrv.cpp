@@ -159,7 +159,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
                     errMsg += "Blink amount is invalid: " + String(blinkAmount) + ". It must be between 1 and 8.";                    
                 } else {
                     displayController.onboardLedPWM = pwm;
-                    displayController.onboardLEDmode = mode;
+                    displayController.onboardLEDmode = (mode > 2) ? 0 : mode;
                     displayController.onboardLEDblinkAmount = blinkAmount;
                 }
             }
@@ -169,7 +169,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     if (errorEncountered) {
         request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
     } else {
-        request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Response received.\"}");
+        request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
     }
 
     #ifdef DEBUG

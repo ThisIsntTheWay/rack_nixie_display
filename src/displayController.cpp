@@ -114,7 +114,7 @@ void taskSetStatusLED(void* parameter) {
                 }
                 break;
             default:
-                // Light up using specified PWM
+                // Light up using specified PWM, a.k.a mode "0".
                 ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
                 break;
         }
