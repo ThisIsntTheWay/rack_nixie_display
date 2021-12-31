@@ -33,7 +33,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
             "leds": 255
         }
     */
-   
+
     bool errorEncountered = false;
     String errMsg = "";
 
@@ -42,16 +42,48 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     if (json.is<JsonArray>()) { data = json.as<JsonArray>(); }
     else if (json.is<JsonObject>()) { data = json.as<JsonObject>(); }
 
+    // Validate keys
+    errMsg = "Unknown keys: ";
+    for (JsonPair kv : data.as<JsonObject>()) {
+        char *validationSet[] = {
+            "indicators",
+            "tubes",
+            "leds",
+            "onboardLed"
+        };
+
+        int aSize = sizeof(validationSet)/sizeof(validationSet[0]);
+        const char *t = kv.key().c_str();
+
+        bool validIteration = false;
+        for (int i = 0; i < aSize; i++) {
+            int a = strcmp(validationSet[i], t);
+
+            if (a == 0) {
+                validIteration = true;
+                break;
+            }
+        }
+
+        if (!validIteration) {
+            errorEncountered = true;
+            errMsg += String(t) + ", ";
+        }
+    }
+
     // Process JSON
     // Indicators
-    for (JsonPair indicator : data["indicators"].as<JsonObject>()) {
-        int indicatorIndex = atol(indicator.key().c_str());
-        if (indicatorIndex > 2) {
-            errorEncountered = true;
-            errMsg += "An unknown indicator index has been specified: " + String(indicatorIndex) + ".";
-            break;
-        } else {
-            displayController.indicators[indicatorIndex - 1] = indicator.value().as<bool>();
+    if (!errorEncountered) {
+        errMsg = "";
+        for (JsonPair indicator : data["indicators"].as<JsonObject>()) {
+            int indicatorIndex = atol(indicator.key().c_str());
+            if (indicatorIndex > 2) {
+                errorEncountered = true;
+                errMsg += "An unknown indicator index has been specified: " + String(indicatorIndex) + ".";
+                break;
+            } else {
+                displayController.indicators[indicatorIndex - 1] = indicator.value().as<bool>();
+            }
         }
     }
 
@@ -79,7 +111,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
             i++;
         }
     }
-    
+
     // LEDs
     if (!errorEncountered) {
         JsonVariant t = data["leds"];
@@ -102,11 +134,11 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
             int mode = onboardLed["mode"];
             int blinkAmount = onboardLed["blinkAmount"];
 
-            // IF spaghetti
+            // Validation
             if ((pwm > 255) || (pwm < 0)) {
                 errorEncountered = true;
                 errMsg += "Onboard PWM is invalid: " + String(pwm) + ". It must be between 0 and 255.";
-                
+            } else {
                 if ((blinkAmount < 1) || (blinkAmount > 7)) {
                     errorEncountered = true;
                     errMsg += "Blink amount is invalid: " + String(blinkAmount) + ". It must be between 1 and 8.";                    
