@@ -57,7 +57,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
 
     if (!errorEncountered) {
         // Validate keys
-        errMsg = "Unknown keys: ";
+        errMsg = "Unknown parameter(s): ";
         for (JsonPair kv : data.as<JsonObject>()) {
             char *validationSet[] = {
                 "indicators",
@@ -81,7 +81,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
 
             if (!validIteration) {
                 errorEncountered = true;
-                errMsg += String(t) + ", ";
+                errMsg += "'" + String(t) + "' ";
             }
         }
     }
@@ -154,7 +154,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
                 errorEncountered = true;
                 errMsg += "Onboard PWM is invalid: " + String(pwm) + ". It must be between 0 and 255.";
             } else {
-                if ((blinkAmount < 1) || (blinkAmount > 7)) {
+                if (onboardLed["blinkAmount"] && ((blinkAmount < 1) || (blinkAmount > 8))) {
                     errorEncountered = true;
                     errMsg += "Blink amount is invalid: " + String(blinkAmount) + ". It must be between 1 and 8.";                    
                 } else {
