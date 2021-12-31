@@ -22,9 +22,34 @@ void taskSetDisplay(void* parameter) {
     }
 
     for (;;) {
+        int t[4] = {11, 11, 11, 11};
+
+        // Initially populate t[]
         for (int i = 0; i < 4; i++) {
-            t[i] = DisplayController::tubeVals[i][1];
-            ledcWrite(i, DisplayController::tubeVals[i][2]);
+            byte tubeIndex = DisplayController::tubeVals[i][0] - 1;
+            byte tubeVal = DisplayController::tubeVals[i][1];
+            byte tubePWM = DisplayController::tubeVals[i][2];
+            
+            if (tubeIndex > 3) {
+                Serial.println("INVALID TUBE INDEX.");
+                continue;
+            }
+
+            t[tubeIndex] = tubeVal;
+
+            // Fully turn off tube instead of leaving cathodes floating.
+            if (tubeVal > 9) {
+                ledcWrite(tubeIndex, 0);
+            } else {
+                ledcWrite(tubeIndex, tubePWM);
+            }
+        }
+
+        // Blank all tubes that were not considered. (Their index was missing in tubeVals)
+        for (int i = 0; i < 4; i++) {
+            if (t[i] == 11) {
+                ledcWrite(i, 0);
+            }
         }
 
         nixies.setDisplay(t);
