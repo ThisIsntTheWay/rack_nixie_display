@@ -2,6 +2,8 @@
 
 #define DEBUG
 
+int authCode = 0;
+
 AsyncWebServer server(80);
 DisplayController displayController;
 
@@ -37,37 +39,77 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     bool errorEncountered = false;
     String errMsg = "";
 
+    // Check authentication
+    // This is done using the parameter "auth" in the URI and must be a number.
+    int args = request->args(); 
+    bool authPresent = false;
+
+    Serial.printf("[!] Authcode set: %d\n", authCode);
+
+    for (int i = 0 ; i < args ; i++) {
+        if (strcmp(request->argName(i).c_str(), "auth") == 0) {
+            // Found auth param
+            authPresent = true;
+
+            int aCode = atol(request->arg(i).c_str());
+
+            // Override authcode if applicable
+            if (authCode < 1) {
+                if (aCode < 1) {
+                    errorEncountered = true;
+                    errMsg = "New authentication code must be greater than 0.";
+                } else {
+                    authCode = aCode;
+                }
+            } else {
+                if (authCode != aCode) {
+                    errorEncountered = true;
+                    errMsg = "Authentication code does not match.";
+                    request->send(401, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
+                }
+            }
+        }
+    }
+
+    if (!authPresent && (authCode > 0)) {
+        errorEncountered = true;
+        errMsg = "Authentication parameter ('auth') is required.";
+        request->send(401, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
+    }
+
     // Construct JSON
     StaticJsonDocument<400> data;
     if (json.is<JsonArray>()) { data = json.as<JsonArray>(); }
     else if (json.is<JsonObject>()) { data = json.as<JsonObject>(); }
 
-    // Validate keys
-    errMsg = "Unknown keys: ";
-    for (JsonPair kv : data.as<JsonObject>()) {
-        char *validationSet[] = {
-            "indicators",
-            "tubes",
-            "leds",
-            "onboardLed"
-        };
+    if (!errorEncountered) {
+        // Validate keys
+        errMsg = "Unknown keys: ";
+        for (JsonPair kv : data.as<JsonObject>()) {
+            char *validationSet[] = {
+                "indicators",
+                "tubes",
+                "leds",
+                "onboardLed"
+            };
 
-        int aSize = sizeof(validationSet)/sizeof(validationSet[0]);
-        const char *t = kv.key().c_str();
+            int aSize = sizeof(validationSet)/sizeof(validationSet[0]);
+            const char *t = kv.key().c_str();
 
-        bool validIteration = false;
-        for (int i = 0; i < aSize; i++) {
-            int a = strcmp(validationSet[i], t);
+            bool validIteration = false;
+            for (int i = 0; i < aSize; i++) {
+                int a = strcmp(validationSet[i], t);
 
-            if (a == 0) {
-                validIteration = true;
-                break;
+                if (a == 0) {
+                    validIteration = true;
+                    break;
+                }
             }
-        }
 
-        if (!validIteration) {
-            errorEncountered = true;
-            errMsg += String(t) + ", ";
+            if (!validIteration) {
+                errorEncountered = true;
+                errMsg += String(t) + ", ";
+            }
         }
     }
 
@@ -152,7 +194,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     }
 
     if (errorEncountered) {
-        request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");        
+        request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
     } else {
         request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Response received.\"}");
     }
@@ -219,6 +261,8 @@ void webServerStaticContent() {
             objOled["blinkAmount"] = displayController.onboardLEDblinkAmount;
             
         responseBody["leds"] = displayController.ledPWM;
+        
+        responseBody["authRequired"] = (authCode > 0) ? true : false;
 
         serializeJsonPretty(responseBody, *response);
         request->send(response);
