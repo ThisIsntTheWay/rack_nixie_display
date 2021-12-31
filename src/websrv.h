@@ -6,6 +6,7 @@
 #include <AsyncJson.h>
 #include <LITTLEFS.h>
 #include <displayController.h>
+#include <timekeeper.h>
 
 void webServerAPIs();
 void webServerStaticContent();

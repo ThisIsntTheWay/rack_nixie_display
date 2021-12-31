@@ -6,36 +6,9 @@ int authCode = 0;
 
 AsyncWebServer server(80);
 DisplayController displayController;
+Timekeeper timekeeper;
 
 AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
-    /*  Sample payload
-        {
-            "indicators": {
-                "1": false,
-                "2": true
-            },
-            "tubes": {
-                "1": {
-                    "val": 1,
-                    "pwm": 255
-                },
-                "2": {
-                    "val": 2,
-                    "pwm": 255
-                },
-                "3": {
-                    "val": 1,
-                    "pwm": 255
-                },
-                "4": {
-                    "val": 2,
-                    "pwm": 255
-                }
-            },
-            "leds": 255
-        }
-    */
-
     bool errorEncountered = false;
     String errMsg = "";
 
@@ -225,11 +198,36 @@ void webServerAPIs() {
 void webServerStaticContent() {
     server.onNotFound(onRequest);
 
+    server.on("/api/system", HTTP_GET, [](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        String buildTime = __DATE__ + String(" ") + __TIME__;
+        
+        StaticJsonDocument<200> responseBody;
+        responseBody["buildTime"] = buildTime;
+        if (timekeeper.mountStatus) {
+            responseBody["uptime"] = String(timekeeper.nowEpoch - timekeeper.bootEpoch);
+            responseBody["ntpSource"] = timekeeper.ntpSource;
+            responseBody["utcOffset"] = timekeeper.utcOffset;
+        } else {
+            responseBody["warn"] = "Filesystem was not mounted, time data unavailable.";
+        }
+        
+        serializeJsonPretty(responseBody, *response);
+        request->send(response);
+    });
+
     server.on("/api/temperature", HTTP_GET, [](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+
         int tempRaw = analogRead(34);
         float tempC = (((tempRaw * 3.3) / 1024.0) -0.5) * 100;
         
-        request->send(200, "application/json", "{\"temperatureRaw\": \"" + String(tempRaw) + "\", \"temperatureC\": \"" + String(tempC) + "\"}");
+        StaticJsonDocument<200> responseBody;
+        responseBody["temperatureRaw"] = String(tempRaw);
+        responseBody["temperatureC"] = String(tempC);
+        
+        serializeJsonPretty(responseBody, *response);
+        request->send(response);
     });
     
     server.on("/api/display", HTTP_GET, [](AsyncWebServerRequest *request) {
