@@ -9,5 +9,6 @@
 
 void webServerAPIs();
 void webServerStaticContent();
+void webServerInit();
 
 #endif

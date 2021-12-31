@@ -38,7 +38,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     String errMsg = "";
 
     // Construct JSON
-    StaticJsonDocument<250> data;
+    StaticJsonDocument<400> data;
     if (json.is<JsonArray>()) { data = json.as<JsonArray>(); }
     else if (json.is<JsonObject>()) { data = json.as<JsonObject>(); }
 
@@ -46,6 +46,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     // Indicators
     JsonVariant indicators = data["indicators"];
     if (indicators) {
+        // This does not handle bad indexes properly
         if (indicators["1"] || indicators["2"]) {
             if (indicators["1"]) 
                 displayController.indicators[0] = indicators["1"].as<bool>();
@@ -62,18 +63,26 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
         int i = 0;
         for (JsonPair tube : data["tubes"].as<JsonObject>()) {
             int tubeIndex = atol(tube.key().c_str());
+            int tubePWM = tube.value()["pwm"].as<int>();
+
             if (tubeIndex > 4) {
                 errorEncountered = true;
                 errMsg += "An unknown tube index has been specified: " + String(tubeIndex) + ".";
                 break;
+            } else {
+                if ((tubePWM > 255) || (tubePWM < 0)) {
+                    errMsg += "An unknown PWM value for tube index " + String(tubeIndex) + " has been specified: " + String(tubePWM) + ".";
+                    break;
+                } else {
+                    displayController.tubeVals[i][0] = tubeIndex;
+                    displayController.tubeVals[i][1] = tube.value()["val"];
+                    displayController.tubeVals[i][2] = tubePWM;
+                }
             }
-
-            displayController.tubeVals[i][0] = tubeIndex;
-            displayController.tubeVals[i][1] = tube.value()["val"];
-            displayController.tubeVals[i][2] = tube.value()["pwm"];
             i++;
         }
 
+        /*
         //https://forum.arduino.cc/t/2d-array-bubblesorting/627032/3
         int boundary = 4;
         for (int x = 0; x < boundary; x++) {
@@ -90,7 +99,7 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
                     }
                 }
             } while (swapDone);
-        }
+        }*/
     }
     
     // LEDs
@@ -115,7 +124,13 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     }
 
     #ifdef DEBUG
+        Serial.print(F("[i] api/display: "));
         serializeJson(data, Serial);
+        if (errorEncountered) {
+            Serial.print(F(" > Error"));
+        }
+
+        Serial.println();
     #endif
 });
 
@@ -123,11 +138,17 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     General functions
    ------------------- */
 
+void onRequest(AsyncWebServerRequest *request){
+    request->send(404, "text/plain", "Resource not found or content-type header not appropriate.");
+}
+
 void webServerAPIs() {
     server.addHandler(tubeHandler);
 }
 
 void webServerStaticContent() {
+    server.onNotFound(onRequest);
+
     server.on("/api/temperature", HTTP_GET, [](AsyncWebServerRequest *request) {
         int tempRaw = analogRead(34);
         float tempC = (((tempRaw * 3.3) / 1024.0) -0.5) * 100;
@@ -138,11 +159,13 @@ void webServerStaticContent() {
     server.on("/api/display", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
     
-        StaticJsonDocument<200> responseBody;
+        StaticJsonDocument<400> responseBody;
         JsonObject objInd = responseBody.createNestedObject("indicators");
             objInd["1"] = displayController.indicators[0];
             objInd["2"] = displayController.indicators[1];
 
+        responseBody["leds"] = displayController.ledPWM;
+        
         // If tubeVals were sorted from the beginning, then String(tubeVals[x][y]) wouldn't be necessary.
         JsonObject objTub = responseBody.createNestedObject("tubes");
             JsonObject t1 = objTub.createNestedObject(String(displayController.tubeVals[0][0]));
@@ -158,9 +181,13 @@ void webServerStaticContent() {
                 t4["val"] = displayController.tubeVals[3][1];
                 t4["pwm"] = displayController.tubeVals[3][2];
 
-        responseBody["leds"] = displayController.ledPWM;
-
-        serializeJson(responseBody, *response);
+        serializeJsonPretty(responseBody, *response);
         request->send(response);
     });
+}
+
+void webServerInit() {
+    webServerAPIs();
+    webServerStaticContent();
+    server.begin();
 }
