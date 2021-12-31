@@ -17,7 +17,9 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     int args = request->args(); 
     bool authPresent = false;
 
-    Serial.printf("[!] Authcode set: %d\n", authCode);
+    #ifdef DEBUG
+        Serial.printf("[!] Authcode set: %d\n", authCode);
+    #endif DEBUG
 
     for (int i = 0 ; i < args ; i++) {
         if (strcmp(request->argName(i).c_str(), "auth") == 0) {
@@ -109,6 +111,10 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
             int tubeIndex = atol(tube.key().c_str());
             int tubePWM = tube.value()["pwm"].as<int>();
 
+            #ifdef DEBUG
+                Serial.printf("[i] It %d: tubeIndex: %d\n", i, tubeIndex);
+            #endif
+
             if (tubeIndex > 4) {
                 errorEncountered = true;
                 errMsg += "An unknown tube index has been specified: " + String(tubeIndex) + ".";
@@ -118,9 +124,10 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
                     errMsg += "An unknown PWM value for tube index " + String(tubeIndex) + " has been specified: " + String(tubePWM) + ".";
                     break;
                 } else {
-                    displayController.tubeVals[i][0] = tubeIndex;
-                    displayController.tubeVals[i][1] = tube.value()["val"];
-                    displayController.tubeVals[i][2] = tubePWM;
+                    tubeIndex--;
+                    displayController.tubeVals[tubeIndex][0] = tubeIndex + 1;
+                    displayController.tubeVals[tubeIndex][1] = tube.value()["val"];
+                    displayController.tubeVals[tubeIndex][2] = tubePWM;
                 }
             }
             i++;
