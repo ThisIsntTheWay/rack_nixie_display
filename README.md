@@ -4,7 +4,7 @@ Uses an ESP32 and, optionally, a temperature sensor (such as the TMP36).
 
 ## Description
 The display, on its own, cannot really display any useful info other than the currently measured temperature.  
-Rather, the ESP32 offers an extensive REST API endpoint that offers almost complete control over the display.  
+Rather, the ESP32 offers an extensive REST API endpoint that permits almost complete control over the display.  
 Using it, the following things are possible: 
 * Controlling each individual tube (IN-4 & INS-1).
   * This means brightness and number to display.
@@ -40,3 +40,6 @@ Virtually any regulator works, as long as it has similar dimensions to the popul
 #### Notes
 To save on vertical space (as to not exceed the 1U mounting constraint), the BCD-Decoders and opto-isolators for the nixies reside on *extension boards*.  
 These are connected using standard 2.54mm headers.
+
+#### Documentation
+Please refer to the [wiki](https://github.com/ThisIsntTheWay/rack_nixie_display/wiki) for documentation.
