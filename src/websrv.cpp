@@ -44,17 +44,14 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
 
     // Process JSON
     // Indicators
-    JsonVariant indicators = data["indicators"];
-    if (indicators) {
-        // This does not handle bad indexes properly
-        if (indicators["1"] || indicators["2"]) {
-            if (indicators["1"]) 
-                displayController.indicators[0] = indicators["1"].as<bool>();
-            if (indicators["2"]) 
-                displayController.indicators[1] = indicators["2"].as<bool>();
-        } else {
+    for (JsonPair indicator : data["indicators"].as<JsonObject>()) {
+        int indicatorIndex = atol(indicator.key().c_str());
+        if (indicatorIndex > 2) {
             errorEncountered = true;
-            errMsg += "An unknown index for 'indicator' has been specified.";
+            errMsg += "An unknown indicator index has been specified: " + String(indicatorIndex) + ".";
+            break;
+        } else {
+            displayController.indicators[indicatorIndex - 1] = indicator.value().as<bool>();
         }
     }
 
@@ -81,25 +78,6 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
             }
             i++;
         }
-
-        /*
-        //https://forum.arduino.cc/t/2d-array-bubblesorting/627032/3
-        int boundary = 4;
-        for (int x = 0; x < boundary; x++) {
-            bool swapDone;
-            do {
-                swapDone = false;
-                for (int z = 0; z < (boundary - 1); z++) {
-                    if (displayController.tubeVals[x][z] > displayController.tubeVals[x][z + 1]) {  // It. 2u warning
-                        int temp = displayController.tubeVals[x][z];
-                        displayController.tubeVals[x][z] = displayController.tubeVals[x][z + 1];
-                        displayController.tubeVals[x][z + 1] = temp;
-
-                        swapDone = true;
-                    }
-                }
-            } while (swapDone);
-        }*/
     }
     
     // LEDs
@@ -113,6 +91,30 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
                 errMsg += "PWM value is invalid: " + String(ledPWM) + ". It must be between 0 and 255.";
             } else {
                 displayController.ledPWM = ledPWM;
+            }
+        }
+    }
+
+    if (!errorEncountered) {
+        JsonVariant onboardLed = data["onboardLed"];
+        if (onboardLed) {
+            int pwm = onboardLed["pwm"];
+            int mode = onboardLed["mode"];
+            int blinkAmount = onboardLed["blinkAmount"];
+
+            // IF spaghetti
+            if ((pwm > 255) || (pwm < 0)) {
+                errorEncountered = true;
+                errMsg += "Onboard PWM is invalid: " + String(pwm) + ". It must be between 0 and 255.";
+                
+                if ((blinkAmount < 1) || (blinkAmount > 7)) {
+                    errorEncountered = true;
+                    errMsg += "Blink amount is invalid: " + String(blinkAmount) + ". It must be between 1 and 8.";                    
+                } else {
+                    displayController.onboardLedPWM = pwm;
+                    displayController.onboardLEDmode = mode;
+                    displayController.onboardLEDblinkAmount = blinkAmount;
+                }
             }
         }
     }
@@ -163,8 +165,6 @@ void webServerStaticContent() {
         JsonObject objInd = responseBody.createNestedObject("indicators");
             objInd["1"] = displayController.indicators[0];
             objInd["2"] = displayController.indicators[1];
-
-        responseBody["leds"] = displayController.ledPWM;
         
         // If tubeVals were sorted from the beginning, then String(tubeVals[x][y]) wouldn't be necessary.
         JsonObject objTub = responseBody.createNestedObject("tubes");
@@ -180,6 +180,13 @@ void webServerStaticContent() {
             JsonObject t4 = objTub.createNestedObject(String(displayController.tubeVals[3][0]));
                 t4["val"] = displayController.tubeVals[3][1];
                 t4["pwm"] = displayController.tubeVals[3][2];
+                
+        JsonObject objOled = responseBody.createNestedObject("onboardLed");
+            objOled["pwm"] = displayController.onboardLedPWM;
+            objOled["mode"] = displayController.onboardLEDmode;
+            objOled["blinkAmount"] = displayController.onboardLEDblinkAmount;
+            
+        responseBody["leds"] = displayController.ledPWM;
 
         serializeJsonPretty(responseBody, *response);
         request->send(response);

@@ -30,7 +30,8 @@ void setup() {
 
   xTaskCreate(taskSetDisplay, "Display daemon", 6500, NULL, 1, NULL);
   xTaskCreate(taskSetIndicators, "Indicator daemon", 6500, NULL, 1, NULL);
-  xTaskCreate(taskSetLeds, "LED daemon", 6500, NULL, 1, NULL);
+  xTaskCreate(taskSetStatusLED, "O_LED daemon", 4000, NULL, 1, NULL);
+  xTaskCreate(taskSetLeds, "T_LED daemon", 4000, NULL, 1, NULL);
 
   Serial.print(vt_green); Serial.println("System ready.");
   Serial.print(vt_default_colour);
