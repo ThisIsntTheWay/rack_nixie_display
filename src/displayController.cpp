@@ -8,6 +8,7 @@ Nixies nixies(DS_PIN, ST_PIN, SH_PIN);
 
 int DisplayController::tubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
 bool DisplayController::indicators[2] = {true, true};
+bool DisplayController::allowRESTcontrol = true;
 uint8_t DisplayController::ledPWM = 255;
 uint8_t DisplayController::onboardLedPWM = 255;
 uint8_t DisplayController::onboardLEDmode = 0;

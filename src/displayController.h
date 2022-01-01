@@ -23,6 +23,7 @@ class DisplayController {
         static uint8_t onboardLedPWM;
         static uint8_t onboardLEDmode;
         static uint8_t onboardLEDblinkAmount;
+        static bool allowRESTcontrol;
 };
 
 void taskSetDisplay(void* parameter);
