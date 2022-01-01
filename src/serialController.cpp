@@ -2,8 +2,6 @@
 #include <serialController.h>
 
 SerialController serialController;
-DisplayController displayController;
-Timekeeper timekeeper;
 
 /**************************************************************************/
 /*!
@@ -38,8 +36,8 @@ bool SerialController::isLocked() {
 */
 /**************************************************************************/
 bool SerialController::lockExpirationStatus() {
-    if (timekeeper.mountStatus) {
-        long epochDiscrepancy = this->epochLockExpiry - timekeeper.nowEpoch;
+    if (this->timekeeper.mountStatus) {
+        long epochDiscrepancy = this->epochLockExpiry - this->timekeeper.nowEpoch;
         if (epochDiscrepancy < 0) {
             return true;
         } else {
@@ -57,8 +55,8 @@ bool SerialController::lockExpirationStatus() {
 /**************************************************************************/
 bool SerialController::setLock(bool state) {
     if (this->hasLock != state) {
-        if (this->lockCanExpire && timekeeper.mountStatus) {
-            this->epochLockExpiry = timekeeper.nowEpoch + LOCK_EXPIRY_MS;
+        if (this->lockCanExpire && this->timekeeper.mountStatus) {
+            this->epochLockExpiry = this->timekeeper.nowEpoch + LOCK_EXPIRY_MS;
         }
 
         this->hasLock = state;
@@ -68,33 +66,37 @@ bool SerialController::setLock(bool state) {
     }
 }
 
-/**************************************************************************/
-/*!
-    @brief Parses a command
-    @param ingress Command/String to parse
-*/
-/**************************************************************************/
-void SerialController::parseCommand(char* ingress) {
-    while (ingress != 0) {
-        // ToDo: Parse command
-    }
+
+/**************************************************************************
+ *                Serial command handlers
+ **************************************************************************/
+char serial_command_buffer_[32];
+SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
+
+void cmd_hello(SerialCommands* sender) {
+	sender->GetSerial()->println("HELLO from arduino!");
 }
+SerialCommand cmd_hello_("hello", cmd_hello);
+
+void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
+	sender->GetSerial()->print("ERROR: Unrecognized command [");
+	sender->GetSerial()->print(cmd);
+	sender->GetSerial()->println("]");
+}
+
+/**************************************************************************
+ *                Other functions
+ **************************************************************************/
 
 void taskMonitorSerial(void *parameter) {
     SerialController sc;
+    
+	serial_commands_.AddCommand(&cmd_hello_);
+    serial_commands_.SetDefaultHandler(&cmd_unrecognized);
+    Serial.println("MonitorSerial ready");
 
     for (;;) {
-        while(Serial.available() == 0) { 
-            vTaskDelay(50);
-        }
-
-        char ingress[INPUT_SIZE + 1];
-        uint8_t s = Serial.readBytes(ingress, INPUT_SIZE);
-
-        // Append 0 for \0 terminated char array
-        ingress[s] = 0;
-
-        sc.parseCommand( (char*)strtok(ingress, " ") );
+        serial_commands_.ReadSerial();
 
         vTaskDelay(500);
     }

@@ -6,18 +6,22 @@
 
 #include <timekeeper.h>
 #include <displayController.h>
+#include <../lib/SerialCommands/SerialCommands.h>
 
 class SerialController {
     public:
         SerialController();
-        void parseCommand(char*);
         bool isLocked();
         bool setLock(bool);
+
     private:
         bool hasLock;
         bool lockCanExpire;
         bool lockExpirationStatus();
         long epochLockExpiry;
+
+        DisplayController displayController;
+        Timekeeper timekeeper;
 };
 
 void taskMonitorSerial(void *parameter);
