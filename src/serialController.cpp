@@ -96,6 +96,7 @@ void taskMonitorSerial(void *parameter) {
     Serial.println("MonitorSerial ready");
 
     for (;;) {
+        // ToDo: Does not do anything
         serial_commands_.ReadSerial();
 
         vTaskDelay(500);
