@@ -8,14 +8,14 @@
 
 class NetworkConfig {
     public:
-        static const char* SSID;
-        static const char* PSK;
+        static String SSID;
+        static String PSK;
         static bool isAP;
 
         void initConnection();
         bool writeNetConfig(bool);
-        bool writeNetConfig(char, char);
-        bool writeNetConfig(char, char, bool);
+        bool writeNetConfig(const char*, const char*);
+        bool writeNetConfig(const char*, const char*, bool);
 
     private:
         String netFile = "/netConfig.json";

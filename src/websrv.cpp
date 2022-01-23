@@ -229,11 +229,11 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
     String errMsg = "Request cannot be processed:";
     
     JsonVariant ssid = data["ssid"];
-    JsonVariant psk = data["ssid"];
+    JsonVariant psk = data["psk"];
     JsonVariant isAP = data["isAP"];
     if (ssid && psk) {
-        char s = ssid.as<char>();
-        char p = psk.as<char>();
+        const char* s = ssid.as<const char*>();
+        const char* p = psk.as<const char*>();
 
         if (isAP) {
             bool t = isAP.as<bool>();
@@ -276,6 +276,7 @@ void onRequest(AsyncWebServerRequest *request){
 void webServerAPIs() {
     server.addHandler(displayHandler);
     server.addHandler(systemHandler);
+    server.addHandler(networkHandler);
 }
 
 void webServerStaticContent() {

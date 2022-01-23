@@ -1,7 +1,7 @@
 #include <networkConfig.h>
 
-const char* NetworkConfig::SSID = " ";
-const char* NetworkConfig::PSK = " ";
+String NetworkConfig::SSID = "";
+String NetworkConfig::PSK = "";
 bool NetworkConfig::isAP = false;
 
 /**************************************************************************/
@@ -45,10 +45,14 @@ bool NetworkConfig::parseNetConfig() {
             netConfig.close();
 
             return false;
-        } else {
-            this->SSID = cfgNET["ssid"];
-            this->PSK = cfgNET["psk"];
-            this->isAP = cfgNET["isAP"];
+        } else {            
+            JsonVariant jsonSSID = cfgNET["ssid"];
+            JsonVariant jsonPSK = cfgNET["psk"];
+            JsonVariant jsonAP = cfgNET["isAP"];
+
+            this->SSID = jsonSSID.as<String>();
+            this->PSK = jsonPSK.as<String>();
+            this->isAP = jsonAP.as<bool>();
         }
 
         return true;
@@ -63,7 +67,7 @@ bool NetworkConfig::parseNetConfig() {
     @param isAP TRUE = Schedule AP mode, FALSE = Schedule station mode.
 */
 /**************************************************************************/
-bool NetworkConfig::writeNetConfig(char ssid, char psk, bool isAP) {
+bool NetworkConfig::writeNetConfig(const char* ssid, const char* psk, bool isAP) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
@@ -90,7 +94,7 @@ bool NetworkConfig::writeNetConfig(char ssid, char psk, bool isAP) {
     @param psk PSK of network to connect to.
 */
 /**************************************************************************/
-bool NetworkConfig::writeNetConfig(char ssid, char psk) {
+bool NetworkConfig::writeNetConfig(const char* ssid, const char* psk) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
@@ -141,26 +145,34 @@ bool NetworkConfig::writeNetConfig(bool isAP) {
 */
 /**************************************************************************/
 void NetworkConfig::initConnection() {
-    if (!this->parseNetConfig()) {
+    bool a = this->parseNetConfig();
+    if (!a) {
+        Serial.println("Could not parse net config.");
         this->isAP = true;
     }
 
-    // Determine between station or AP mode.
+    // Determine if station or AP mode.
     if (this->isAP) {
         this->initSoftAP();
     } else {
+        Serial.print("Connecting to "); Serial.println(this->SSID);
         WiFi.mode(WIFI_STA);
-        WiFi.begin(this->SSID, this->PSK);
-        Serial.print("Connecting to "); Serial.println(SSID);
-        
+        WiFi.begin(this->PSK.c_str(), this->SSID.c_str());
+
+        // Attempt connection        
         uint8_t retryLimit = 20;
         bool isSuccess = false;
 
-        // Attempt connection
         for (int i = 0; i <= retryLimit; i++) {
+            state = WiFi.status();
+
             if (i == retryLimit) {
                 Serial.println("");
                 Serial.println("[X] Connection timed out.");
+                break;
+            } else if (state == WL_CONNECT_FAILED) {
+                Serial.println("");
+                Serial.println("[X] Connection failed.");
                 break;
             } else {
                 if (WiFi.status() != WL_CONNECTED) {
