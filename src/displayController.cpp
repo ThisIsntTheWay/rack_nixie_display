@@ -7,8 +7,10 @@
 Nixies nixies(DS_PIN, ST_PIN, SH_PIN);
 
 int DisplayController::tubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
+
 bool DisplayController::indicators[2] = {true, true};
 bool DisplayController::allowRESTcontrol = true;
+
 uint8_t DisplayController::ledPWM = 255;
 uint8_t DisplayController::onboardLedPWM = 255;
 uint8_t DisplayController::onboardLEDmode = 0;
@@ -65,7 +67,7 @@ void taskSetIndicators(void* parameter) {
     }
 
     for (;;) {
-        for (int i = 0; i > 2; i++) {
+        for (int i = 0; i < 2; i++) {
             nixies.setIndicator(i, DisplayController::indicators[i]);
         }
 
@@ -75,6 +77,8 @@ void taskSetIndicators(void* parameter) {
 
 // Tube LEDs
 void taskSetLeds(void* parameter) {
+    pinMode(TUBE_LED_PIN, OUTPUT);
+
     ledcSetup(TUBE_LEDC_CHANNEL, LEDC_PWM_FREQUENCY, 8);
     ledcAttachPin(TUBE_LED_PIN, TUBE_LEDC_CHANNEL);
 
@@ -87,6 +91,8 @@ void taskSetLeds(void* parameter) {
 
 // Status LED for ESP32
 void taskSetStatusLED(void* parameter) {
+    pinMode(ONBOARD_LED_PIN, OUTPUT);
+
     ledcSetup(ONBOARD_LEDC_CHANNEL, LEDC_PWM_FREQUENCY, 8);
     ledcAttachPin(ONBOARD_LED_PIN, ONBOARD_LEDC_CHANNEL);
 

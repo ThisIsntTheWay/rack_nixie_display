@@ -92,12 +92,14 @@ void Nixies::blankDisplay() {
 */
 /**************************************************************************/
 void Nixies::setIndicator(int which, bool state) {
-    if (which > 2) {
+    if (which > 1 || which < 0) {
         Serial.printf("[X] setIndicator invalid 'which': %d.\n", which);
         throw;
     }
 
-    digitalWrite(which, state);
+    // LEDC channels 4+ are for the INS-1 tubes
+    int target = 4 + which;
+    ledcWrite(target, state ? 255 : 0);
 }
 
 /**************************************************************************/
