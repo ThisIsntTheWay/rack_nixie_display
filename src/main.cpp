@@ -3,29 +3,19 @@
 #include <websrv.h>
 #include <terminalAux.h>
 #include <timekeeper.h>
+#include <LITTLEFS.h>
+#include <networkConfig.h>
+
+NetworkConfig nConfig;
 
 void setup() {
   Serial.begin(115200);
 
-  // ---------------------------------
-  // TEST CODE
-  const char *SSID = "*****";
-  const char *WiFiPassword = "*****";
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID, WiFiPassword);
-  Serial.print("Connecting to "); Serial.println(SSID);
- 
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print('.');
-    delay(500);
+  if (!LITTLEFS.begin()) {
+    Serial.println("[X] FS mount failure!");
   }
- 
-  Serial.println("");
-  Serial.print(vt_green); Serial.print(F("Connected. IP address is: "));
-  Serial.println(WiFi.localIP());
-  Serial.print(vt_default_colour);
-  // ---------------------------------
+  
+  nConfig.initConnection();
 
   webServerInit();
 
