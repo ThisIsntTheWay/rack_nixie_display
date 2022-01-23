@@ -16,7 +16,7 @@ class NetworkConfig {
         bool writeWiFiConfig(bool);
         bool writeWiFiConfig(const char*, const char*);
         bool writeWiFiConfig(const char*, const char*, bool);
-        bool writeIPConfig(const JsonDocument& refDoc);
+        bool writeIPConfig(JsonDocument& refDoc);
 
         String getIPconfig(int8_t);
 

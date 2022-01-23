@@ -96,13 +96,14 @@ String NetworkConfig::getIPconfig(int8_t which) {
     }
 }
 
-bool NetworkConfig::writeIPConfig(const JsonDocument& refDoc) {
-    JsonVariant jsonIsStatic = refDoc["isStatic"];
-    JsonVariant jsonDeviceIP = refDoc["deviceIP"];
-    JsonVariant jsonNetmask = refDoc["netmask"];
-    JsonVariant jsonGateway = refDoc["gateway"];
-    JsonVariant jsonDNS1 = refDoc["dns1"];
-    JsonVariant jsonDNS2 = refDoc["dns2"];
+
+bool NetworkConfig::writeIPConfig(JsonDocument& _refDoc) {
+    JsonVariant jsonIsStatic = _refDoc["isStatic"];
+    JsonVariant jsonDeviceIP = _refDoc["deviceIP"];
+    JsonVariant jsonNetmask = _refDoc["netmask"];
+    JsonVariant jsonGateway = _refDoc["gateway"];
+    JsonVariant jsonDNS1 = _refDoc["dns1"];
+    JsonVariant jsonDNS2 = _refDoc["dns2"];
 
     File netConfig = LITTLEFS.open(this->netFile, "w");
     
@@ -119,13 +120,12 @@ bool NetworkConfig::writeIPConfig(const JsonDocument& refDoc) {
     } else {
         if (jsonIsStatic.as<bool>()) {
             cfgNET["isStatic"] = jsonIsStatic.as<bool>();
-            if (jsonDeviceIP) cfgNET["deviceIP"] = jsonDeviceIP.as<const char>();
+            if (jsonDeviceIP) cfgNET["deviceIP"] = jsonDeviceIP.as<const char*>();
             if (jsonNetmask) cfgNET["netmask"] = jsonNetmask.as<const char*>();
             if (jsonGateway) cfgNET["gateway"] = jsonGateway.as<const char*>();
             if (jsonDNS1) cfgNET["dns1"] = jsonDNS1.as<const char*>();
             if (jsonDNS2) cfgNET["dns2"] = jsonDNS2.as<const char*>();
-        }
-        
+        }        
         
         if (!(serializeJson(cfgNET, netConfig))) {
             Serial.println(F("[X] NET: Config write failure."));
@@ -136,6 +136,8 @@ bool NetworkConfig::writeIPConfig(const JsonDocument& refDoc) {
 
         return true;
     }
+    
+    return true;
 }
 
 bool NetworkConfig::applyNetConfig() {
@@ -153,17 +155,17 @@ bool NetworkConfig::applyNetConfig() {
     } else {
         JsonVariant jsonIsStatic = cfgNET["isStatic"];
         JsonVariant jsonDeviceIP = cfgNET["deviceIP"];
-        JsonVariant jsonNetmask = cfgNET["netmask"];
+        /*JsonVariant jsonNetmask = cfgNET["netmask"];
         JsonVariant jsonGateway = cfgNET["gateway"];
         JsonVariant jsonDNS1 = cfgNET["dns1"];
-        JsonVariant jsonDNS2 = cfgNET["dns2"];
+        JsonVariant jsonDNS2 = cfgNET["dns2"];*/
 
-        bool t = jsonIsStatic.as<bool>();
-
-        if (t) {
+        if (jsonIsStatic.as<bool>()) {
             if (jsonDeviceIP) {
                 const char* tmp = jsonDeviceIP.as<const char*>();
+                int outIP[4];
 
+                this->splitIPaddress((char*)tmp, outIP);
             }
 
         } else {
@@ -186,8 +188,16 @@ bool splitIPaddress(char* ingress, int* output) {
     int tmpIP[4];
 
     char* octetChar = strtok(ingress, ".");
-    while (octetChar != NULL) {
+
+    int8_t i = 0; while (octetChar != NULL) {
+        if (i > 3) {
+            Serial.println("IP SPLIT: tmpIP out ouf range.");
+            throw;
+        }
         int8_t octet = atoi(octetChar);
+        tmpIP[i] = octet;
+        i++;
+
         Serial.printf("> Octet: %d\n", octet);
         octetChar = strtok(NULL, ",");
     }
