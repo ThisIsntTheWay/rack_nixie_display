@@ -12,7 +12,9 @@ int Timekeeper::dstOffset = 3600;
 int Timekeeper::utcOffset = 3600;
 const char* Timekeeper::ntpSource = "ch.pool.ntp.org";
 
-void parseNTPconfig(String ntpFile) {
+Timekeeper _timekeeper;
+
+void Timekeeper::parseNTPconfig(String ntpFile) {
     if (!LITTLEFS.exists(ntpFile)) {
         File ntpConfig = LITTLEFS.open(ntpFile, "w");
 
@@ -42,9 +44,13 @@ void parseNTPconfig(String ntpFile) {
             Serial.print("[X] RTC parser: Deserialization fault: "); Serial.println(err);
         } else {
             //strlcpy(ntpSource, cfgNTP["ntpSource"], sizeof(ntpSource));
-            Timekeeper::ntpSource = cfgNTP["ntpSource"];
-            Timekeeper::dstOffset = cfgNTP["dstOffset"];
-            Timekeeper::utcOffset = cfgNTP["utcOffset"];
+            JsonVariant a = cfgNTP["ntpSource"];
+            JsonVariant b = cfgNTP["dstOffset"];
+            JsonVariant c = cfgNTP["utcOffset"];
+
+            this->ntpSource = a.as<const char*>();
+            this->dstOffset = b.as<int>();
+            this->utcOffset = c.as<int>();
         }
 
         ntpConfig.close();
@@ -58,7 +64,7 @@ void taskTimekeeper(void *parameter) {
         Serial.println("[X] FS: Filesystem mount failure.");
         Timekeeper::mountStatus = false;
     } else {
-        parseNTPconfig(ntpFile);
+        _timekeeper.parseNTPconfig(ntpFile);
     }
 
     // Start updaing time

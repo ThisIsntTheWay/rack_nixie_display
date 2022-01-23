@@ -17,9 +17,10 @@ class Timekeeper {
         static int updateInterval;
         static const char* ntpSource;
         static bool mountStatus;
+        
+        void parseNTPconfig(String);
 };
 
-void parseNTPconfig(String);
 void taskTimekeeper (void *parameter);
 
 #endif
