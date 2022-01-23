@@ -1,5 +1,6 @@
 <#
     This little script shows the current temperature as recorded by the TMP36 sensor.
+    The raw ADC reading is used as base for calculations.
 #>
 
 $ProgressPreference = 'SilentlyContinue'
@@ -39,13 +40,13 @@ Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
         "indicators" = @{ "1" = $false; "2" = $true }
     } | ConvertTo-Json)
 
-
 while ($true) {
     $uri = "http://$targetIP/api/temperature"
-    $content = (Invoke-RestMethod $uri).temperatureRaw
+    $systemTemperature = (Invoke-RestMethod $uri).temperatureRaw
     
-    $tAsNumber = Calculate-Temperature $content $false
-    $tAsArray = Calculate-Temperature $content
+    $tAsNumber = Calculate-Temperature $systemTemperature $false
+    $tAsArray = Calculate-Temperature $systemTemperature
+    
     Write-Host "Temperature (°C): " -nonewline
     Write-Host $tAsNumber -fore yellow -NoNewline
     
