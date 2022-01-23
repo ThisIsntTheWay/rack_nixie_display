@@ -157,11 +157,12 @@ void NetworkConfig::initConnection() {
     } else {
         Serial.print("Connecting to "); Serial.println(this->SSID);
         WiFi.mode(WIFI_STA);
-        WiFi.begin(this->PSK.c_str(), this->SSID.c_str());
+        WiFi.begin(this->SSID.c_str(), this->PSK.c_str());
 
         // Attempt connection        
         uint8_t retryLimit = 20;
         bool isSuccess = false;
+        wl_status_t state;
 
         for (int i = 0; i <= retryLimit; i++) {
             state = WiFi.status();
@@ -175,7 +176,7 @@ void NetworkConfig::initConnection() {
                 Serial.println("[X] Connection failed.");
                 break;
             } else {
-                if (WiFi.status() != WL_CONNECTED) {
+                if (state != WL_CONNECTED) {
                     Serial.print(".");
                 } else {
                     isSuccess = true;
