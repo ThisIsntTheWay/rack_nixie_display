@@ -9,7 +9,7 @@ AsyncWebServer server(80);
 DisplayController displayController;
 Timekeeper timekeeper;
 
-AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
+AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
     bool errorEncountered = false;
     String errMsg = "";
 
@@ -226,7 +226,7 @@ void onRequest(AsyncWebServerRequest *request){
 }
 
 void webServerAPIs() {
-    server.addHandler(tubeHandler);
+    server.addHandler(displayHandler);
     server.addHandler(systemHandler);
 }
 
