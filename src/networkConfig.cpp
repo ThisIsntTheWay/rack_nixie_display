@@ -55,7 +55,6 @@ bool NetworkConfig::parseNetConfig() {
             JsonVariant jsonNetmask = cfgNET["netmask"];
             JsonVariant jsonGateway = cfgNET["gateway"];
             JsonVariant jsonDNS1 = cfgNET["dns1"];
-            JsonVariant jsonDNS2 = cfgNET["dns2"];
 
             this->SSID = jsonSSID.as<String>();
             this->PSK = jsonPSK.as<String>();
@@ -69,7 +68,6 @@ bool NetworkConfig::parseNetConfig() {
                 this->netmask = jsonNetmask.as<const char*>();
                 this->gateway = jsonGateway.as<const char*>();
                 this->dns1 = jsonDNS1.as<const char*>();
-                this->dns2 = jsonDNS2.as<const char*>();
             }
         }
 
@@ -80,7 +78,7 @@ bool NetworkConfig::parseNetConfig() {
 /**************************************************************************/
 /*!
     @brief Returns the current IPv4 configuration.
-    @param which Which IP parameter to return, from 0 to 5.
+    @param which Which IP parameter to return, from 0 to 4.
     @return Returns the requested IP as a string.
 */
 /**************************************************************************/
@@ -90,8 +88,7 @@ String NetworkConfig::getIPconfig(int8_t which) {
         case 1: return String(WiFi.subnetCIDR()); break;
         case 2: return WiFi.gatewayIP().toString(); break;
         case 3: return WiFi.dnsIP(0).toString(); break;
-        case 4: return WiFi.dnsIP(1).toString(); break;
-        case 5: return WiFi.macAddress(); break;
+        case 4: return WiFi.macAddress(); break;
         default: Serial.printf("[X] Invalid getIPconfig 'which': %d\n", which); throw;
     }
 }
@@ -103,7 +100,6 @@ bool NetworkConfig::writeIPConfig(JsonDocument& _refDoc) {
     JsonVariant jsonNetmask = _refDoc["netmask"];
     JsonVariant jsonGateway = _refDoc["gateway"];
     JsonVariant jsonDNS1 = _refDoc["dns1"];
-    JsonVariant jsonDNS2 = _refDoc["dns2"];
 
     File netConfig = LITTLEFS.open(this->netFile, "w");
     
@@ -124,7 +120,6 @@ bool NetworkConfig::writeIPConfig(JsonDocument& _refDoc) {
             if (jsonNetmask) cfgNET["netmask"] = jsonNetmask.as<const char*>();
             if (jsonGateway) cfgNET["gateway"] = jsonGateway.as<const char*>();
             if (jsonDNS1) cfgNET["dns1"] = jsonDNS1.as<const char*>();
-            if (jsonDNS2) cfgNET["dns2"] = jsonDNS2.as<const char*>();
         }        
         
         if (!(serializeJson(cfgNET, netConfig))) {
@@ -155,21 +150,64 @@ bool NetworkConfig::applyNetConfig() {
     } else {
         JsonVariant jsonIsStatic = cfgNET["isStatic"];
         JsonVariant jsonDeviceIP = cfgNET["deviceIP"];
-        /*JsonVariant jsonNetmask = cfgNET["netmask"];
+        JsonVariant jsonNetmask = cfgNET["netmask"];
         JsonVariant jsonGateway = cfgNET["gateway"];
         JsonVariant jsonDNS1 = cfgNET["dns1"];
-        JsonVariant jsonDNS2 = cfgNET["dns2"];*/
 
         if (jsonIsStatic.as<bool>()) {
+            IPAddress deviceIP(0,0,0,0);
+            IPAddress netmask(0,0,0,0);
+            IPAddress gatewayIP(0,0,0,0);
+            IPAddress dns1IP(0,0,0,0);
+
             if (jsonDeviceIP) {
                 const char* tmp = jsonDeviceIP.as<const char*>();
-                int outIP[4];
+                int devIP[4];
 
-                this->splitIPaddress((char*)tmp, outIP);
+                // Save into IPAddress
+                this->splitIPaddress((char*)tmp, devIP);
+                for (int i = 0; i < 3; i++) {
+                    deviceIP[i] = devIP[i];
+                }
             }
+            if (jsonNetmask) {
+                const char* tmp = jsonNetmask.as<const char*>();
+                int nMask[4];
+
+                this->splitIPaddress((char*)tmp, nMask);
+                for (int i = 0; i < 3; i++) {
+                    netmask[i] = nMask[i];
+                }
+            }
+            if (jsonGateway) {
+                const char* tmp = jsonGateway.as<const char*>();
+                int gate[4];
+
+                this->splitIPaddress((char*)tmp, gate);
+                for (int i = 0; i < 3; i++) {
+                    gatewayIP[i] = gate[i];
+                }
+            }
+            if (jsonDNS1) {
+                const char* tmp = jsonDNS1.as<const char*>();
+                int dns1[4];
+
+                this->splitIPaddress((char*)tmp, dns1);
+                for (int i = 0; i < 3; i++) {
+                    dns1IP[i] = dns1[i];
+                }
+            }
+
+            // Apply config
+            /*if (jsonDeviceIP && jsonDNS1 && jsonGateway && jsonNetmask) { WiFi.config(deviceIP, dns1IP, gatewayIP, netmask); }
+            else if (jsonDeviceIP && jsonDNS1 && jsonGateway)           { WiFi.config(deviceIP, dns1IP, gatewayIP); }
+            else if (jsonDeviceIP && jsonDNS1)                          { WiFi.config(deviceIP, dns1IP); }
+            else if (jsonDeviceIP)                                      { WiFi.config(deviceIP); }*/
+            WiFi.config(deviceIP, dns1IP, gatewayIP, netmask);
 
         } else {
             Serial.println("[X] NET: No static IP.");
+            return false;
         }
         
         netConfig.close();
@@ -185,22 +223,25 @@ bool NetworkConfig::applyNetConfig() {
 */
 /**************************************************************************/
 bool splitIPaddress(char* ingress, int* output) {
-    int tmpIP[4];
-
     char* octetChar = strtok(ingress, ".");
 
+    int tmp[4];
     int8_t i = 0; while (octetChar != NULL) {
         if (i > 3) {
             Serial.println("IP SPLIT: tmpIP out ouf range.");
             throw;
         }
-        int8_t octet = atoi(octetChar);
-        tmpIP[i] = octet;
+
+        int octet = atoi(octetChar);
+        tmp[i] = octet;
         i++;
 
         Serial.printf("> Octet: %d\n", octet);
-        octetChar = strtok(NULL, ",");
+        octetChar = strtok(NULL, ".");
     }
+
+    // Copy into output
+    memcpy(output, tmp, sizeof(tmp));
 
     return true;
 }

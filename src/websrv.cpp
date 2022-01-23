@@ -307,9 +307,8 @@ void webServerStaticContent() {
 
         responseBody["deviceIP"] = netConfig.getIPconfig(0) + "/" + netConfig.getIPconfig(1);
         responseBody["gateway"] = netConfig.getIPconfig(2);
-        responseBody["dns1"] = netConfig.getIPconfig(3);
-        responseBody["dns2"] = netConfig.getIPconfig(4);
-        responseBody["mac"] = netConfig.getIPconfig(5);
+        responseBody["dns"] = netConfig.getIPconfig(3);
+        responseBody["mac"] = netConfig.getIPconfig(4);
 
         serializeJsonPretty(responseBody, *response);
         request->send(response);
