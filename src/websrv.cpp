@@ -259,6 +259,9 @@ void webServerStaticContent() {
         responseBody["uptime"] = String(timekeeper.nowEpoch - timekeeper.bootEpoch);
         responseBody["ntpSource"] = timekeeper.ntpSource;
         responseBody["utcOffset"] = timekeeper.utcOffset;
+        if (!timekeeper.mountStatus) {
+            responseBody["warning"] = String("The filesystem was not mounted.");
+        }
         
         serializeJsonPretty(responseBody, *response);
         request->send(response);
