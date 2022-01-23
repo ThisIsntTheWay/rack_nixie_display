@@ -213,6 +213,23 @@ AsyncCallbackJsonWebHandler *systemHandler = new AsyncCallbackJsonWebHandler("/a
         }
     }
     
+    // Default to HTTP/400
+    String errMsg = "Request cannot be processed.";
+    request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
+});
+
+AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/api/network", [](AsyncWebServerRequest *request, JsonVariant &json) {
+    StaticJsonDocument<200> data;
+    if (json.is<JsonArray>()) { data = json.as<JsonArray>(); }
+    else if (json.is<JsonObject>()) { data = json.as<JsonObject>(); }
+    
+    JsonVariant ssid = data["ssid"];
+    JsonVariant psk = data["ssid"];
+    if (ssid && psk) {
+
+    }
+    
+    // Default to HTTP/400
     String errMsg = "Request cannot be processed.";
     request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
 });
@@ -239,13 +256,9 @@ void webServerStaticContent() {
         
         StaticJsonDocument<200> responseBody;
         responseBody["buildTime"] = buildTime;
-        if (timekeeper.mountStatus) {
-            responseBody["uptime"] = String(timekeeper.nowEpoch - timekeeper.bootEpoch);
-            responseBody["ntpSource"] = timekeeper.ntpSource;
-            responseBody["utcOffset"] = timekeeper.utcOffset;
-        } else {
-            responseBody["warn"] = "Filesystem was not mounted, time data unavailable.";
-        }
+        responseBody["uptime"] = String(timekeeper.nowEpoch - timekeeper.bootEpoch);
+        responseBody["ntpSource"] = timekeeper.ntpSource;
+        responseBody["utcOffset"] = timekeeper.utcOffset;
         
         serializeJsonPretty(responseBody, *response);
         request->send(response);
