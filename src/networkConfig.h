@@ -13,15 +13,27 @@ class NetworkConfig {
         static bool isAP;
 
         void initConnection();
-        bool writeNetConfig(bool);
-        bool writeNetConfig(const char*, const char*);
-        bool writeNetConfig(const char*, const char*, bool);
+        bool writeWiFiConfig(bool);
+        bool writeWiFiConfig(const char*, const char*);
+        bool writeWiFiConfig(const char*, const char*, bool);
+        bool writeIPConfig(const JsonDocument& refDoc);
+
+        String getIPconfig(int8_t);
 
     private:
         String netFile = "/netConfig.json";
 
+        const char* deviceIP;
+        const char* netmask;
+        const char* gateway;
+        const char* dns1;
+        const char* dns2;
+        bool isStatic;
+
         bool parseNetConfig();
+        bool applyNetConfig();
         void initSoftAP();
+        bool splitIPaddress(char*, int*);
         
         const char *softAPssid = "Nixie rack display";
         const char *softAPpsk = "NixieRackDisplay";

@@ -22,7 +22,7 @@ bool NetworkConfig::parseNetConfig() {
         cfgNET["psk"] = "myPSK";
         cfgNET["isAP"] = true;
 
-        // Write rtcConfig.cfg
+        // Write NetConfig.cfg
         if (!(serializeJson(cfgNET, netConfig))) {
             Serial.println(F("[X] NET: Config write failure."));
         }
@@ -41,7 +41,7 @@ bool NetworkConfig::parseNetConfig() {
         if (error) {
             String err = error.c_str();
 
-            Serial.print("[X] RTC parser: Deserialization fault: "); Serial.println(err);
+            Serial.print("[X] Net parser: Deserialization fault: "); Serial.println(err);
             netConfig.close();
 
             return false;
@@ -50,13 +50,149 @@ bool NetworkConfig::parseNetConfig() {
             JsonVariant jsonPSK = cfgNET["psk"];
             JsonVariant jsonAP = cfgNET["isAP"];
 
+            JsonVariant jsonIsStatic = cfgNET["isStatic"];
+            JsonVariant jsonDeviceIP = cfgNET["deviceIP"];
+            JsonVariant jsonNetmask = cfgNET["netmask"];
+            JsonVariant jsonGateway = cfgNET["gateway"];
+            JsonVariant jsonDNS1 = cfgNET["dns1"];
+            JsonVariant jsonDNS2 = cfgNET["dns2"];
+
             this->SSID = jsonSSID.as<String>();
             this->PSK = jsonPSK.as<String>();
             this->isAP = jsonAP.as<bool>();
+
+            // IP config
+            bool t = jsonIsStatic.as<bool>();
+            if (t) {
+                this->isStatic = jsonIsStatic.as<bool>();
+                this->deviceIP = jsonDeviceIP.as<const char*>();
+                this->netmask = jsonNetmask.as<const char*>();
+                this->gateway = jsonGateway.as<const char*>();
+                this->dns1 = jsonDNS1.as<const char*>();
+                this->dns2 = jsonDNS2.as<const char*>();
+            }
         }
 
         return true;
-    }    
+    }
+}
+
+/**************************************************************************/
+/*!
+    @brief Returns the current IPv4 configuration.
+    @param which Which IP parameter to return, from 0 to 5.
+    @return Returns the requested IP as a string.
+*/
+/**************************************************************************/
+String NetworkConfig::getIPconfig(int8_t which) {
+    switch (which) {
+        case 0: return WiFi.localIP().toString(); break;
+        case 1: return String(WiFi.subnetCIDR()); break;
+        case 2: return WiFi.gatewayIP().toString(); break;
+        case 3: return WiFi.dnsIP(0).toString(); break;
+        case 4: return WiFi.dnsIP(1).toString(); break;
+        case 5: return WiFi.macAddress(); break;
+        default: Serial.printf("[X] Invalid getIPconfig 'which': %d\n", which); throw;
+    }
+}
+
+bool NetworkConfig::writeIPConfig(const JsonDocument& refDoc) {
+    JsonVariant jsonIsStatic = refDoc["isStatic"];
+    JsonVariant jsonDeviceIP = refDoc["deviceIP"];
+    JsonVariant jsonNetmask = refDoc["netmask"];
+    JsonVariant jsonGateway = refDoc["gateway"];
+    JsonVariant jsonDNS1 = refDoc["dns1"];
+    JsonVariant jsonDNS2 = refDoc["dns2"];
+
+    File netConfig = LITTLEFS.open(this->netFile, "w");
+    
+    // Parse JSON
+    StaticJsonDocument<250> cfgNET;
+    DeserializationError error = deserializeJson(cfgNET, netConfig);
+    if (error) {
+        String err = error.c_str();
+
+        Serial.print("[X] NET parser: Deserialization fault: "); Serial.println(err);
+        netConfig.close();
+
+        return false;
+    } else {
+        if (jsonIsStatic.as<bool>()) {
+            cfgNET["isStatic"] = jsonIsStatic.as<bool>();
+            if (jsonDeviceIP) cfgNET["deviceIP"] = jsonDeviceIP.as<const char>();
+            if (jsonNetmask) cfgNET["netmask"] = jsonNetmask.as<const char*>();
+            if (jsonGateway) cfgNET["gateway"] = jsonGateway.as<const char*>();
+            if (jsonDNS1) cfgNET["dns1"] = jsonDNS1.as<const char*>();
+            if (jsonDNS2) cfgNET["dns2"] = jsonDNS2.as<const char*>();
+        }
+        
+        
+        if (!(serializeJson(cfgNET, netConfig))) {
+            Serial.println(F("[X] NET: Config write failure."));
+
+            netConfig.close();
+            return false;
+        }
+
+        return true;
+    }
+}
+
+bool NetworkConfig::applyNetConfig() {
+    File netConfig = LITTLEFS.open(this->netFile, "r");
+
+    StaticJsonDocument<250> cfgNET;
+    DeserializationError error = deserializeJson(cfgNET, netConfig);
+    if (error) {
+        String err = error.c_str();
+
+        Serial.print("[X] NET parser: Deserialization fault: "); Serial.println(err);
+        netConfig.close();
+
+        return false;
+    } else {
+        JsonVariant jsonIsStatic = cfgNET["isStatic"];
+        JsonVariant jsonDeviceIP = cfgNET["deviceIP"];
+        JsonVariant jsonNetmask = cfgNET["netmask"];
+        JsonVariant jsonGateway = cfgNET["gateway"];
+        JsonVariant jsonDNS1 = cfgNET["dns1"];
+        JsonVariant jsonDNS2 = cfgNET["dns2"];
+
+        bool t = jsonIsStatic.as<bool>();
+
+        if (t) {
+            if (jsonDeviceIP) {
+                const char* tmp = jsonDeviceIP.as<const char*>();
+
+            }
+
+        } else {
+            Serial.println("[X] NET: No static IP.");
+        }
+        
+        netConfig.close();
+        return true;
+    }
+}
+
+/**************************************************************************/
+/*!
+    @brief Split an IP Address (as char[]) and put each octet into an array.
+    @param ingress IP to split, must have 4 octects.
+    @param output Array to populate.
+*/
+/**************************************************************************/
+bool splitIPaddress(char* ingress, int* output) {
+    int tmpIP[4];
+
+    char* octetChar = strtok(ingress, ".");
+    while (octetChar != NULL) {
+        int8_t octet = atoi(octetChar);
+        Serial.printf("> Octet: %d\n", octet);
+        octetChar = strtok(NULL, ",");
+    }
+
+    return true;
 }
 
 /**************************************************************************/
@@ -67,7 +203,7 @@ bool NetworkConfig::parseNetConfig() {
     @param isAP TRUE = Schedule AP mode, FALSE = Schedule station mode.
 */
 /**************************************************************************/
-bool NetworkConfig::writeNetConfig(const char* ssid, const char* psk, bool isAP) {
+bool NetworkConfig::writeWiFiConfig(const char* ssid, const char* psk, bool isAP) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
@@ -75,7 +211,7 @@ bool NetworkConfig::writeNetConfig(const char* ssid, const char* psk, bool isAP)
     cfgNET["psk"] = psk;
     cfgNET["isAP"] = isAP;
 
-    // Write rtcConfig.cfg
+    // Write NetConfig.cfg
     if (!(serializeJson(cfgNET, netConfig))) {
         Serial.println(F("[X] NET: Config write failure."));
 
@@ -94,14 +230,14 @@ bool NetworkConfig::writeNetConfig(const char* ssid, const char* psk, bool isAP)
     @param psk PSK of network to connect to.
 */
 /**************************************************************************/
-bool NetworkConfig::writeNetConfig(const char* ssid, const char* psk) {
+bool NetworkConfig::writeWiFiConfig(const char* ssid, const char* psk) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
     cfgNET["ssid"] = ssid;
     cfgNET["psk"] = psk;
 
-    // Write rtcConfig.cfg
+    // Write NetConfig.cfg
     if (!(serializeJson(cfgNET, netConfig))) {
         Serial.println(F("[X] NET: Config write failure."));
 
@@ -120,13 +256,13 @@ bool NetworkConfig::writeNetConfig(const char* ssid, const char* psk) {
     @param isAP SSID of network to connect to.
 */
 /**************************************************************************/
-bool NetworkConfig::writeNetConfig(bool isAP) {
+bool NetworkConfig::writeWiFiConfig(bool isAP) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
     cfgNET["isAP"] = isAP;
 
-    // Write rtcConfig.cfg
+    // Write NetConfig.cfg
     if (!(serializeJson(cfgNET, netConfig))) {
         Serial.println(F("[X] NET: Config write failure."));
 
