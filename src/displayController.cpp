@@ -100,22 +100,38 @@ void taskSetStatusLED(void* parameter) {
         switch (DisplayController::onboardLEDmode) {
             case 1:
                 // Blink
+                // -> LED is turned OFF but turns ON in a blinking matter
                 for (int i = 0; i <= DisplayController::onboardLEDblinkAmount; i++) {
                     ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
-                    vTaskDelay(50);
+                    vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
                     ledcWrite(ONBOARD_LEDC_CHANNEL, 0);
-                    vTaskDelay(50);
+                    vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
                 }
 
-                vTaskDelay(300);
+                vTaskDelay(1000);
                 break;
             case 2:
+                // "Inverted" blink
+                // -> LED is turned ON but turns OFF in a blinking matter
+                ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
+                for (int i = 0; i <= DisplayController::onboardLEDblinkAmount; i++) {
+                    ledcWrite(ONBOARD_LEDC_CHANNEL, 0);
+                    vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
+                    ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
+                    vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
+                }
+
+                vTaskDelay(1000);
+                break;
+            case 3:
                 // Pulsate
-                for (int i = 0; i < 255; i++) {
+                // Duty cycles above 170 are hardly perceived as brighter, so this serves as the ceiling.
+                uint8_t maxPWM = 170;
+                for (int i = 0; i < maxPWM; i++) {
                     ledcWrite(ONBOARD_LEDC_CHANNEL, i);
                     vTaskDelay(10);
                 }
-                for (int i = 255; i > 0; i--) {
+                for (int i = 170; i > maxPWM; i--) {
                     ledcWrite(ONBOARD_LEDC_CHANNEL, i);
                     vTaskDelay(10);
                 }

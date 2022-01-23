@@ -9,8 +9,10 @@
 
 #define TASK_TICK_DELAY 100
 #define LEDC_PWM_FREQUENCY 100
-#define TUBE_LEDC_CHANNEL 15
-#define ONBOARD_LEDC_CHANNEL 16
+#define TUBE_LEDC_CHANNEL 14
+#define ONBOARD_LEDC_CHANNEL 15
+
+#define ONBOARD_LED_BLINK_INTERVAL 100
 
 #include <Arduino.h>
 #include <nixies.h>

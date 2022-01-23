@@ -167,7 +167,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
                     errMsg += "Blink amount is invalid: " + String(blinkAmount) + ". It must be between 1 and 8.";                    
                 } else {
                     displayController.onboardLedPWM = pwm;
-                    displayController.onboardLEDmode = (mode > 2) ? 0 : mode;
+                    displayController.onboardLEDmode = (mode > 3) ? 0 : mode;
                     displayController.onboardLEDblinkAmount = blinkAmount;
                 }
             }
