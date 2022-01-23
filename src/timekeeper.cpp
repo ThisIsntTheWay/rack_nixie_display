@@ -2,13 +2,15 @@
 
 WiFiUDP ntpUDP;
 
+bool Timekeeper::mountStatus = true;
 int Timekeeper::updateInterval = 60000;
 long Timekeeper::bootEpoch;
 long Timekeeper::nowEpoch;
-int Timekeeper::dstOffset;
-int Timekeeper::utcOffset;
-bool Timekeeper::mountStatus = true;
-const char* Timekeeper::ntpSource;
+
+//  Defaults
+int Timekeeper::dstOffset = 3600;
+int Timekeeper::utcOffset = 3600;
+const char* Timekeeper::ntpSource = "ch.pool.ntp.org";
 
 void parseNTPconfig(String ntpFile) {
     if (!LITTLEFS.exists(ntpFile)) {
@@ -49,13 +51,12 @@ void parseNTPconfig(String ntpFile) {
     }
 }
 
-void taskTimekeeper (void *parameter) {
+void taskTimekeeper(void *parameter) {
     String ntpFile = "/ntpConfig.json";
 
     if (!LITTLEFS.begin()) {
         Serial.println("[X] FS: Filesystem mount failure.");
         Timekeeper::mountStatus = false;
-        vTaskDelete(NULL);
     } else {
         parseNTPconfig(ntpFile);
     }
