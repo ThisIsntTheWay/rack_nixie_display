@@ -61,6 +61,9 @@ void taskTimekeeper(void *parameter) {
         parseNTPconfig(ntpFile);
     }
 
+    // Start updaing time
+    NetworkConfig netConfig;
+
     NTPClient timeClient(ntpUDP, Timekeeper::ntpSource, Timekeeper::dstOffset, Timekeeper::updateInterval);
     timeClient.begin();
     timeClient.update();
@@ -68,9 +71,12 @@ void taskTimekeeper(void *parameter) {
     Timekeeper::bootEpoch = timeClient.getEpochTime();
 
     for (;;) {
-        timeClient.update();
-        Timekeeper::nowEpoch = timeClient.getEpochTime();
+        if (!netConfig.isAP) {
+            timeClient.update();
+            Timekeeper::nowEpoch = timeClient.getEpochTime();
 
-        vTaskDelay(2000);
+        }
+        
+        vTaskDelay(4000);
     }
 }

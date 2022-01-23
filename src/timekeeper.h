@@ -6,6 +6,7 @@
 #include <WiFiUdp.h>
 #include <LITTLEFS.h>
 #include <ArduinoJson.h>
+#include <networkConfig.h>
 
 class Timekeeper {
     public:
