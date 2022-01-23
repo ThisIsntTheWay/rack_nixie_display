@@ -13,9 +13,8 @@ Using it, the following things are possible:
 * Basic authentication mechanism to ensure only select devices can talk to the display.
  
 ### Preview
-Here is a prototype of an almost fully assembled unit.  
-![alt text](https://i.imgur.com/wuSl5DA.png)
-(One IN-4 sadly broke and is thus missing)
+Here is REV1 of a fully assembled unit.  
+![alt text](https://i.imgur.com/BAUmOMw.jpg)
 
 ### Hardware
 This project uses the following components:
