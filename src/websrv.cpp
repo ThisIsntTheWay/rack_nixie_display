@@ -1,4 +1,5 @@
 #include <websrv.h>
+#include <AsyncElegantOTA.h>
 
 #define DEBUG
 
@@ -190,6 +191,32 @@ AsyncCallbackJsonWebHandler *tubeHandler = new AsyncCallbackJsonWebHandler("/api
     #endif
 });
 
+AsyncCallbackJsonWebHandler *systemHandler = new AsyncCallbackJsonWebHandler("/api/system", [](AsyncWebServerRequest *request, JsonVariant &json) {
+    StaticJsonDocument<200> data;
+    if (json.is<JsonArray>()) { data = json.as<JsonArray>(); }
+    else if (json.is<JsonObject>()) { data = json.as<JsonObject>(); }
+
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    StaticJsonDocument<200> responseBody;
+    
+    JsonVariant t = data["doReboot"];
+    if (t) {
+        bool checkReboot = t.as<bool>();
+
+        if (checkReboot) {
+            responseBody["message"] = String("Will do reboot.");
+            
+            serializeJsonPretty(responseBody, *response);
+            request->send(response);
+
+            ESP.restart();
+        }
+    }
+    
+    String errMsg = "Request cannot be processed.";
+    request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
+});
+
 /* -------------------
     General functions
    ------------------- */
@@ -200,6 +227,7 @@ void onRequest(AsyncWebServerRequest *request){
 
 void webServerAPIs() {
     server.addHandler(tubeHandler);
+    server.addHandler(systemHandler);
 }
 
 void webServerStaticContent() {
@@ -277,5 +305,7 @@ void webServerStaticContent() {
 void webServerInit() {
     webServerAPIs();
     webServerStaticContent();
+
+    AsyncElegantOTA.begin(&server);
     server.begin();
 }
