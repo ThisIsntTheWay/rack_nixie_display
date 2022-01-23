@@ -237,13 +237,13 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
 
         if (isAP) {
             bool t = isAP.as<bool>();
-            if (!(netConfig.writeNetConfig(s, p, t))) {
+            if (!(netConfig.writeWiFiConfig(s, p, t))) {
                 errMsg += " Could not write to config.";
             } else {
                 request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
             }
         } else {
-            if (!(netConfig.writeNetConfig(s, p))) {
+            if (!(netConfig.writeWiFiConfig(s, p))) {
                 errMsg += " Could not write to config.";
             } else {
                 request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
@@ -252,7 +252,7 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
 
     } else if (isAP) {
         bool t = isAP.as<bool>();
-        if (!(netConfig.writeNetConfig(t))) {
+        if (!(netConfig.writeWiFiConfig(t))) {
             errMsg += " Could not write to config.";
         } else {
             request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
@@ -296,6 +296,21 @@ void webServerStaticContent() {
             responseBody["warning"] = String("The filesystem was not mounted.");
         }
         
+        serializeJsonPretty(responseBody, *response);
+        request->send(response);
+    });
+    
+    server.on("/api/network", HTTP_GET, [](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        
+        StaticJsonDocument<200> responseBody;
+
+        responseBody["deviceIP"] = netConfig.getIPconfig(0) + "/" + netConfig.getIPconfig(1);
+        responseBody["gateway"] = netConfig.getIPconfig(2);
+        responseBody["dns1"] = netConfig.getIPconfig(3);
+        responseBody["dns2"] = netConfig.getIPconfig(4);
+        responseBody["mac"] = netConfig.getIPconfig(5);
+
         serializeJsonPretty(responseBody, *response);
         request->send(response);
     });
