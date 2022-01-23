@@ -123,7 +123,7 @@ void taskSetStatusLED(void* parameter) {
 
                 vTaskDelay(1000);
                 break;
-            case 3:
+            case 3: {
                 // Pulsate
                 // Duty cycles above 170 are hardly perceived as brighter, so this serves as the ceiling.
                 uint8_t maxPWM = 170;
@@ -136,6 +136,7 @@ void taskSetStatusLED(void* parameter) {
                     vTaskDelay(10);
                 }
                 break;
+            }
             default:
                 // Light up using specified PWM, a.k.a mode "0".
                 ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
