@@ -192,10 +192,7 @@ void NetworkConfig::initConnection() {
 */
 /**************************************************************************/
 void NetworkConfig::initSoftAP() {
-    const char *ssid = "Nixie rack display";
-    const char *psk = "NixieRackDisplay";
-
-    if (WiFi.softAP(ssid, psk)) {
+    if (WiFi.softAP(this->softAPssid, this->softAPpsk)) {
         Serial.print("[i] WiFi AP is ready. IP: ");
         Serial.println(WiFi.softAPIP());
     } else {

@@ -22,6 +22,9 @@ class NetworkConfig {
 
         bool parseNetConfig();
         void initSoftAP();
+        
+        const char *softAPssid = "Nixie rack display";
+        const char *softAPpsk = "NixieRackDisplay";
 };
 
 #endif
