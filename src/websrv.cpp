@@ -1,12 +1,15 @@
 #include <websrv.h>
 #include <AsyncElegantOTA.h>
+#include <networkConfig.h>
 
 #define DEBUG
 
 int authCode = 0;
 
 AsyncWebServer server(80);
+
 DisplayController displayController;
+NetworkConfig netConfig;
 Timekeeper timekeeper;
 
 AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
@@ -223,14 +226,42 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
     if (json.is<JsonArray>()) { data = json.as<JsonArray>(); }
     else if (json.is<JsonObject>()) { data = json.as<JsonObject>(); }
     
+    String errMsg = "Request cannot be processed:";
+    
     JsonVariant ssid = data["ssid"];
     JsonVariant psk = data["ssid"];
+    JsonVariant isAP = data["isAP"];
     if (ssid && psk) {
+        char s = ssid.as<char>();
+        char p = psk.as<char>();
 
+        if (isAP) {
+            bool t = isAP.as<bool>();
+            if (!(netConfig.writeNetConfig(s, p, t))) {
+                errMsg += " Could not write to config.";
+            } else {
+                request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
+            }
+        } else {
+            if (!(netConfig.writeNetConfig(s, p))) {
+                errMsg += " Could not write to config.";
+            } else {
+                request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
+            }
+        }
+
+    } else if (isAP) {
+        bool t = isAP.as<bool>();
+        if (!(netConfig.writeNetConfig(t))) {
+            errMsg += " Could not write to config.";
+        } else {
+            request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
+        }
+    } else {
+        errMsg += " No valid parameters have been supplied.";
     }
     
     // Default to HTTP/400
-    String errMsg = "Request cannot be processed.";
     request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"" + errMsg + "\"}");
 });
 
@@ -259,6 +290,7 @@ void webServerStaticContent() {
         responseBody["uptime"] = String(timekeeper.nowEpoch - timekeeper.bootEpoch);
         responseBody["ntpSource"] = timekeeper.ntpSource;
         responseBody["utcOffset"] = timekeeper.utcOffset;
+
         if (!timekeeper.mountStatus) {
             responseBody["warning"] = String("The filesystem was not mounted.");
         }
