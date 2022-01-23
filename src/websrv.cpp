@@ -286,7 +286,7 @@ void webServerStaticContent() {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
         String buildTime = __DATE__ + String(" ") + __TIME__;
         
-        StaticJsonDocument<200> responseBody;
+        StaticJsonDocument<300> responseBody;
         responseBody["buildTime"] = buildTime;
         responseBody["uptime"] = String(timekeeper.nowEpoch - timekeeper.bootEpoch);
         responseBody["ntpSource"] = timekeeper.ntpSource;
