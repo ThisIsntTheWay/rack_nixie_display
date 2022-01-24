@@ -229,8 +229,9 @@ bool NetworkConfig::ApplyNetConfig() {
             WiFi.config(deviceIP, gatewayIP, netmask, dns1IP);
         } else {
             this->IsStatic = false;
-            
             Serial.println(F("[i] Will use DHCP."));
+            
+            netConfig.close();
             return false;
         }
         
