@@ -3,6 +3,7 @@
 String NetworkConfig::SSID = "";
 String NetworkConfig::PSK = "";
 bool NetworkConfig::IsAP = false;
+bool NetworkConfig::IsStatic = false;
 
 /**************************************************************************/
 /*!
@@ -106,19 +107,21 @@ bool NetworkConfig::WriteIPConfig(JsonDocument& _refDoc) {
     JsonVariant jsonGateway = _refDoc["gateway"];
     JsonVariant jsonDNS1 = _refDoc["dns"];
 
-    File netConfig = LITTLEFS.open(this->netFile, "r+");
+    File netConfig = LITTLEFS.open(this->netFile, "r");
     
     // Parse JSON
     StaticJsonDocument<250> cfgNET;
     DeserializationError error = deserializeJson(cfgNET, netConfig);
     if (error) {
-        String err = error.c_str();
-
-        Serial.print("[X] netCFG deserialization fault: "); Serial.println(err);
+        Serial.print("[X] netCFG deserialization fault: "); Serial.println(error.c_str());
         netConfig.close();
 
         return false;
     } else {
+        // Reopen in writing mode.
+        netConfig.close();
+        File netConfig = LITTLEFS.open(this->netFile, "w");
+
         bool DHCP = _refDoc["useDHCP"];
         if (DHCP) {
             cfgNET["isStatic"] = (bool) false;
@@ -129,8 +132,10 @@ bool NetworkConfig::WriteIPConfig(JsonDocument& _refDoc) {
         if (jsonDeviceIP) cfgNET["deviceIP"] = jsonDeviceIP.as<const char*>();
         if (jsonNetmask) cfgNET["netmask"] = jsonNetmask.as<const char*>();
         if (jsonGateway) cfgNET["gateway"] = jsonGateway.as<const char*>();
-        if (jsonDNS1) cfgNET["dns"] = jsonDNS1.as<const char*>();  
+        if (jsonDNS1) cfgNET["dns"] = jsonDNS1.as<const char*>();
         
+        serializeJsonPretty(cfgNET, Serial); Serial.println("");
+
         if (!(serializeJson(cfgNET, netConfig))) {
             Serial.println(F("[X] netCFG: Config write failure."));
 
@@ -138,6 +143,7 @@ bool NetworkConfig::WriteIPConfig(JsonDocument& _refDoc) {
             return false;
         }
 
+        netConfig.close();
         return true;
     }
     
@@ -168,11 +174,10 @@ bool NetworkConfig::ApplyNetConfig() {
         JsonVariant jsonGateway = cfgNET["gateway"];
         JsonVariant jsonDNS1 = cfgNET["dns"];
 
-        if (jsonIsStatic) { Serial.println("[i] GOT isStatic."); }
-        else { Serial.println("[i] NO isStatic."); }
-
         bool t = jsonIsStatic.as<bool>();
         if (t) {
+            this->IsStatic = true;
+
             IPAddress deviceIP(0,0,0,0);
             IPAddress netmask(0,0,0,0);
             IPAddress gatewayIP(0,0,0,0);
@@ -184,7 +189,7 @@ bool NetworkConfig::ApplyNetConfig() {
 
                 // Save into IPAddress
                 this->splitIPaddress((char*)tmp, devIP);
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 4; i++) {
                     deviceIP[i] = devIP[i];
                 }
             }
@@ -193,7 +198,7 @@ bool NetworkConfig::ApplyNetConfig() {
                 int nMask[4];
 
                 this->splitIPaddress((char*)tmp, nMask);
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 4; i++) {
                     netmask[i] = nMask[i];
                 }
             }
@@ -202,7 +207,7 @@ bool NetworkConfig::ApplyNetConfig() {
                 int gate[4];
 
                 this->splitIPaddress((char*)tmp, gate);
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 4; i++) {
                     gatewayIP[i] = gate[i];
                 }
             }
@@ -211,7 +216,7 @@ bool NetworkConfig::ApplyNetConfig() {
                 int dns1[4];
 
                 this->splitIPaddress((char*)tmp, dns1);
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 4; i++) {
                     dns1IP[i] = dns1[i];
                 }
             }
@@ -221,9 +226,11 @@ bool NetworkConfig::ApplyNetConfig() {
             else if (jsonDeviceIP && jsonDNS1 && jsonGateway)           { WiFi.config(deviceIP, dns1IP, gatewayIP); }
             else if (jsonDeviceIP && jsonDNS1)                          { WiFi.config(deviceIP, dns1IP); }
             else if (jsonDeviceIP)                                      { WiFi.config(deviceIP); }*/
-            WiFi.config(deviceIP, dns1IP, gatewayIP, netmask);
+            WiFi.config(deviceIP, gatewayIP, netmask, dns1IP);
         } else {
-            Serial.println("[i] NET: No static IP.");
+            this->IsStatic = false;
+            
+            Serial.println(F("[i] Will use DHCP."));
             return false;
         }
         
@@ -253,7 +260,10 @@ bool NetworkConfig::splitIPaddress(char* ingress, int* output) {
         tmp[i] = octet;
         i++;
 
-        Serial.printf("> Octet: %d\n", octet);
+        #ifdef DEBUG
+            Serial.printf("> Octet: %d\n", octet);
+        #endif DEBUG
+
         octetChar = strtok(NULL, ".");
     }
 
@@ -397,8 +407,10 @@ void NetworkConfig::InitConnection() {
 
         // AP fallback if connection timed out.
         if (isSuccess) {
-            Serial.print(F("Connected. IP address is: "));
-            Serial.println(WiFi.localIP());
+            Serial.println(F("Connected. IP config:"));
+            Serial.print("> Local IP:"); Serial.println(WiFi.localIP());
+            Serial.print("> Netmask:"); Serial.println(WiFi.subnetMask());
+            Serial.print("> Gateway: "); Serial.println(WiFi.gatewayIP());
         } else {
             this->IsAP = true;
             this->initSoftAP();

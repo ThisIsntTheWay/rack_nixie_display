@@ -276,7 +276,7 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
     JsonObject ipConfigJson = data["ipConfig"];
     if (ipConfigJson) {
         StaticJsonDocument<200> ipConfigDoc = ipConfigJson;
-        
+
         bool b = netConfig.WriteIPConfig(ipConfigDoc);
         ipConfigDoc.clear();
 
@@ -339,6 +339,7 @@ void webServerStaticContent() {
         
         StaticJsonDocument<200> responseBody;
 
+        responseBody["dhcp"] = netConfig.IsStatic;
         responseBody["deviceIP"] = netConfig.GetIPconfig(0) + "/" + netConfig.GetIPconfig(1);
         responseBody["gateway"] = netConfig.GetIPconfig(2);
         responseBody["dns"] = netConfig.GetIPconfig(3);

@@ -11,6 +11,7 @@ class NetworkConfig {
         static String SSID;
         static String PSK;
         static bool IsAP;
+        static bool IsStatic;
 
         void InitConnection();
         bool WriteWiFiConfig(bool);
