@@ -2,7 +2,7 @@
 #include <AsyncElegantOTA.h>
 #include <networkConfig.h>
 
-#define DEBUG
+//#define DEBUG
 
 int authCode = 0;
 
@@ -113,26 +113,34 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
         int i = 0;
         for (JsonPair tube : data["tubes"].as<JsonObject>()) {
             int tubeIndex = atol(tube.key().c_str());
-            int tubePWM = tube.value()["pwm"].as<int>();
 
             #ifdef DEBUG
                 Serial.printf("[i] It %d: tubeIndex: %d\n", i, tubeIndex);
             #endif
 
+            // Sanity checks
             if (tubeIndex > 4) {
                 errorEncountered = true;
                 errMsg += "An unknown tube index has been specified: " + String(tubeIndex) + ".";
                 break;
             } else {
-                if ((tubePWM > 255) || (tubePWM < 0)) {
-                    errMsg += "An unknown PWM value for tube index " + String(tubeIndex) + " has been specified: " + String(tubePWM) + ".";
-                    break;
-                } else {
-                    tubeIndex--;
-                    displayController.tubeVals[tubeIndex][0] = tubeIndex + 1;
-                    displayController.tubeVals[tubeIndex][1] = tube.value()["val"];
-                    displayController.tubeVals[tubeIndex][2] = tubePWM;
+                // Only update tubePWM if it actually exists.
+                int tubePWM = 999;
+                if (tube.value()["pwm"]) {
+                    tubePWM = tube.value()["pwm"].as<int>();
+
+                    if ((tubePWM > 255) || (tubePWM < 0)) {
+                        errorEncountered = true;
+                        errMsg += "PWM value for tube index " + String(tubeIndex) + " is out ouf bounds: " + String(tubePWM) + ".";
+                        break;
+                    }
                 }
+
+                // All good, update displayController
+                tubeIndex--;
+                displayController.tubeVals[tubeIndex][0] = tubeIndex + 1; // Not really needed anymore, as all tubes are ordered already.
+                displayController.tubeVals[tubeIndex][1] = tube.value()["val"];
+                if (tubePWM != 999) displayController.tubeVals[tubeIndex][2] = tubePWM;
             }
             i++;
         }
