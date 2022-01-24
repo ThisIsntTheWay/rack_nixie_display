@@ -10,15 +10,15 @@
 
 class Timekeeper {
     public:
-        static long bootEpoch;
-        static long nowEpoch;
-        static int dstOffset;
-        static int utcOffset;
-        static int updateInterval;
-        static const char* ntpSource;
-        static bool mountStatus;
+        static long BootEpoch;
+        static long NowEpoch;
+        static int DstOffset;
+        static int UtcOffset;
+        static int UpdateInterval;
+        static const char* NtpSource;
+        static bool MountStatus;
         
-        void parseNTPconfig(String);
+        void ParseNTPconfig(String);
 };
 
 void taskTimekeeper (void *parameter);

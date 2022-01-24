@@ -19,13 +19,13 @@
 
 class DisplayController {
     public:
-        static int tubeVals[4][3];
-        static bool indicators[2];
-        static uint8_t ledPWM;
-        static uint8_t onboardLedPWM;
-        static uint8_t onboardLEDmode;
-        static uint8_t onboardLEDblinkAmount;
-        static bool allowRESTcontrol;
+        static int TubeVals[4][3];
+        static bool Indicators[2];
+        static uint8_t LedPWM;
+        static uint8_t OnboardLedPWM;
+        static uint8_t OnboardLEDmode;
+        static uint8_t OnboardLEDblinkAmount;
+        static bool AllowRESTcontrol;
 };
 
 void taskSetDisplay(void* parameter);

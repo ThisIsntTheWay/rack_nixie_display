@@ -7,10 +7,10 @@ class Nixies {
     public:
         Nixies(int, int, int);
 
-        void setDisplay(int[4]);
-        void setIndicator(int, bool);
-        void blankDisplay();
-        bool isReady();
+        void SetDisplay(int[4]);
+        void SetIndicator(int, bool);
+        void BlankDisplay();
+        bool IsReady();
 
     private:
         void blankTube(int);

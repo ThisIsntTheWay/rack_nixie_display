@@ -2,7 +2,7 @@
 
 String NetworkConfig::SSID = "";
 String NetworkConfig::PSK = "";
-bool NetworkConfig::isAP = false;
+bool NetworkConfig::IsAP = false;
 
 /**************************************************************************/
 /*!
@@ -20,15 +20,15 @@ bool NetworkConfig::parseNetConfig() {
 
         cfgNET["ssid"] = "mySSID";
         cfgNET["psk"] = "myPSK";
-        cfgNET["isAP"] = true;
+        cfgNET["IsAP"] = true;
 
         // Write NetConfig.cfg
         if (!(serializeJson(cfgNET, netConfig))) {
             Serial.println(F("[X] NET: Config write failure."));
         }
 
-        // Makse sure isAP is actually true
-        this->isAP = true;
+        // Makse sure IsAP is actually true
+        this->IsAP = true;
 
         netConfig.close();
         return true;
@@ -48,7 +48,7 @@ bool NetworkConfig::parseNetConfig() {
         } else {            
             JsonVariant jsonSSID = cfgNET["ssid"];
             JsonVariant jsonPSK = cfgNET["psk"];
-            JsonVariant jsonAP = cfgNET["isAP"];
+            JsonVariant jsonAP = cfgNET["IsAP"];
 
             JsonVariant jsonIsStatic = cfgNET["isStatic"];
             JsonVariant jsonDeviceIP = cfgNET["deviceIP"];
@@ -58,7 +58,7 @@ bool NetworkConfig::parseNetConfig() {
 
             this->SSID = jsonSSID.as<String>();
             this->PSK = jsonPSK.as<String>();
-            this->isAP = jsonAP.as<bool>();
+            this->IsAP = jsonAP.as<bool>();
 
             // IP config
             bool t = jsonIsStatic.as<bool>();
@@ -82,19 +82,19 @@ bool NetworkConfig::parseNetConfig() {
     @return Returns the requested IP as a string.
 */
 /**************************************************************************/
-String NetworkConfig::getIPconfig(int8_t which) {
+String NetworkConfig::GetIPconfig(int8_t which) {
     switch (which) {
         case 0: return WiFi.localIP().toString(); break;
         case 1: return String(WiFi.subnetCIDR()); break;
         case 2: return WiFi.gatewayIP().toString(); break;
         case 3: return WiFi.dnsIP(0).toString(); break;
         case 4: return WiFi.macAddress(); break;
-        default: Serial.printf("[X] Invalid getIPconfig 'which': %d\n", which); throw;
+        default: Serial.printf("[X] Invalid GetIPconfig 'which': %d\n", which); throw;
     }
 }
 
 
-bool NetworkConfig::writeIPConfig(JsonDocument& _refDoc) {
+bool NetworkConfig::WriteIPConfig(JsonDocument& _refDoc) {
     JsonVariant jsonIsStatic = _refDoc["isStatic"];
     JsonVariant jsonDeviceIP = _refDoc["deviceIP"];
     JsonVariant jsonNetmask = _refDoc["netmask"];
@@ -251,16 +251,16 @@ bool splitIPaddress(char* ingress, int* output) {
     @brief Write to network configuration file.
     @param ssid SSID of network to connect to.
     @param psk PSK of network to connect to.
-    @param isAP TRUE = Schedule AP mode, FALSE = Schedule station mode.
+    @param IsAP TRUE = Schedule AP mode, FALSE = Schedule station mode.
 */
 /**************************************************************************/
-bool NetworkConfig::writeWiFiConfig(const char* ssid, const char* psk, bool isAP) {
+bool NetworkConfig::WriteWiFiConfig(const char* ssid, const char* psk, bool IsAP) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
     cfgNET["ssid"] = ssid;
     cfgNET["psk"] = psk;
-    cfgNET["isAP"] = isAP;
+    cfgNET["IsAP"] = IsAP;
 
     // Write NetConfig.cfg
     if (!(serializeJson(cfgNET, netConfig))) {
@@ -281,7 +281,7 @@ bool NetworkConfig::writeWiFiConfig(const char* ssid, const char* psk, bool isAP
     @param psk PSK of network to connect to.
 */
 /**************************************************************************/
-bool NetworkConfig::writeWiFiConfig(const char* ssid, const char* psk) {
+bool NetworkConfig::WriteWiFiConfig(const char* ssid, const char* psk) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
@@ -304,14 +304,14 @@ bool NetworkConfig::writeWiFiConfig(const char* ssid, const char* psk) {
 /**************************************************************************/
 /*!
     @brief (Overload 2) Write to network configuration file.
-    @param isAP SSID of network to connect to.
+    @param IsAP SSID of network to connect to.
 */
 /**************************************************************************/
-bool NetworkConfig::writeWiFiConfig(bool isAP) {
+bool NetworkConfig::WriteWiFiConfig(bool IsAP) {
     File netConfig = LITTLEFS.open(this->netFile, "w");
     StaticJsonDocument<200> cfgNET;
 
-    cfgNET["isAP"] = isAP;
+    cfgNET["IsAP"] = IsAP;
 
     // Write NetConfig.cfg
     if (!(serializeJson(cfgNET, netConfig))) {
@@ -331,15 +331,15 @@ bool NetworkConfig::writeWiFiConfig(bool isAP) {
     @brief Initiates a WiFi connection depending on the network config JSON.
 */
 /**************************************************************************/
-void NetworkConfig::initConnection() {
+void NetworkConfig::InitConnection() {
     bool a = this->parseNetConfig();
     if (!a) {
         Serial.println("Could not parse net config.");
-        this->isAP = true;
+        this->IsAP = true;
     }
 
     // Determine if station or AP mode.
-    if (this->isAP) {
+    if (this->IsAP) {
         this->initSoftAP();
     } else {
         Serial.print("Connecting to "); Serial.println(this->SSID);
@@ -380,7 +380,7 @@ void NetworkConfig::initConnection() {
             Serial.print(F("Connected. IP address is: "));
             Serial.println(WiFi.localIP());
         } else {
-            this->isAP = true;
+            this->IsAP = true;
             this->initSoftAP();
         }
     }

@@ -47,7 +47,7 @@ Nixies::Nixies(int DS, int ST, int SH) {
     @brief Returns true if nixies have been set up properly.
 */
 /**************************************************************************/
-bool Nixies::isReady() {
+bool Nixies::IsReady() {
     return this->ready;
 }
 
@@ -57,7 +57,7 @@ bool Nixies::isReady() {
     @param displayVal Array of all tube values.
 */
 /**************************************************************************/
-void Nixies::setDisplay(int displayVal[4]) {
+void Nixies::SetDisplay(int displayVal[4]) {
     digitalWrite(this->SR_ST, 0);
         shiftOut(this->SR_DS, this->SR_SH, MSBFIRST, (displayVal[3] << 4) | displayVal[2]);
         shiftOut(this->SR_DS, this->SR_SH, MSBFIRST, (displayVal[1] << 4) | displayVal[0]);
@@ -69,7 +69,7 @@ void Nixies::setDisplay(int displayVal[4]) {
     @brief Blank all tubes by writing invalid b1111 to all BCD decoders and turning anodes off.
 */
 /**************************************************************************/
-void Nixies::blankDisplay() {
+void Nixies::BlankDisplay() {
     // Push 0xFF to BCD decoders, disabling all outputs
     digitalWrite(this->SR_ST, 0);
         shiftOut(this->SR_DS, this->SR_SH, MSBFIRST, 0b1111111);
@@ -91,9 +91,9 @@ void Nixies::blankDisplay() {
     @param state TRUE = tube on, FALSE = tube off.
 */
 /**************************************************************************/
-void Nixies::setIndicator(int which, bool state) {
+void Nixies::SetIndicator(int which, bool state) {
     if (which > 1 || which < 0) {
-        Serial.printf("[X] setIndicator invalid 'which': %d.\n", which);
+        Serial.printf("[X] SetIndicator invalid 'which': %d.\n", which);
         throw;
     }
 
@@ -110,7 +110,7 @@ void Nixies::setIndicator(int which, bool state) {
 /**************************************************************************/
 void Nixies::blankTube(int which) {
     if (which > sizeof(optos)/sizeof(optos)) {
-        Serial.printf("[X] blankDisplay invalid 'which': %d.\n", which);
+        Serial.printf("[X] BlankDisplay invalid 'which': %d.\n", which);
         throw;
     }
 

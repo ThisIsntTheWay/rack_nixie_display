@@ -10,15 +10,15 @@ class NetworkConfig {
     public:
         static String SSID;
         static String PSK;
-        static bool isAP;
+        static bool IsAP;
 
-        void initConnection();
-        bool writeWiFiConfig(bool);
-        bool writeWiFiConfig(const char*, const char*);
-        bool writeWiFiConfig(const char*, const char*, bool);
-        bool writeIPConfig(JsonDocument& refDoc);
+        void InitConnection();
+        bool WriteWiFiConfig(bool);
+        bool WriteWiFiConfig(const char*, const char*);
+        bool WriteWiFiConfig(const char*, const char*, bool);
+        bool WriteIPConfig(JsonDocument& refDoc);
 
-        String getIPconfig(int8_t);
+        String GetIPconfig(int8_t);
 
     private:
         String netFile = "/netConfig.json";

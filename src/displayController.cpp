@@ -6,22 +6,22 @@
 
 Nixies nixies(DS_PIN, ST_PIN, SH_PIN);
 
-int DisplayController::tubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
+int DisplayController::TubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
 
-bool DisplayController::indicators[2] = {true, true};
-bool DisplayController::allowRESTcontrol = true;
+bool DisplayController::Indicators[2] = {true, true};
+bool DisplayController::AllowRESTcontrol = true;
 
-uint8_t DisplayController::ledPWM = 255;
-uint8_t DisplayController::onboardLedPWM = 255;
-uint8_t DisplayController::onboardLEDmode = 0;
-uint8_t DisplayController::onboardLEDblinkAmount = 0;
+uint8_t DisplayController::LedPWM = 255;
+uint8_t DisplayController::OnboardLedPWM = 255;
+uint8_t DisplayController::OnboardLEDmode = 0;
+uint8_t DisplayController::OnboardLEDblinkAmount = 0;
 
 /* -------------------
     Main
    ------------------- */
 
 void taskSetDisplay(void* parameter) {
-    while (!nixies.isReady()) {
+    while (!nixies.IsReady()) {
         vTaskDelay(200);
     }
 
@@ -30,9 +30,9 @@ void taskSetDisplay(void* parameter) {
 
         // Initially populate t[]
         for (int i = 0; i < 4; i++) {
-            uint8_t tubeIndex = DisplayController::tubeVals[i][0] - 1;
-            uint8_t tubeVal = DisplayController::tubeVals[i][1];
-            uint8_t tubePWM = DisplayController::tubeVals[i][2];
+            uint8_t tubeIndex = DisplayController::TubeVals[i][0] - 1;
+            uint8_t tubeVal = DisplayController::TubeVals[i][1];
+            uint8_t tubePWM = DisplayController::TubeVals[i][2];
             
             if (tubeIndex > 3) {
                 Serial.println("INVALID TUBE INDEX.");
@@ -49,26 +49,26 @@ void taskSetDisplay(void* parameter) {
             }
         }
 
-        // Blank all tubes that were not considered. (Their index is missing in tubeVals)
+        // Blank all tubes that were not considered. (Their index is missing in TubeVals)
         for (int i = 0; i < 4; i++) {
             if (t[i] == 11) {
                 ledcWrite(i, 0);
             }
         }
 
-        nixies.setDisplay(t);
+        nixies.SetDisplay(t);
         vTaskDelay(TASK_TICK_DELAY);
     }
 }
 
 void taskSetIndicators(void* parameter) {
-    while (!nixies.isReady()) {
+    while (!nixies.IsReady()) {
         vTaskDelay(200);
     }
 
     for (;;) {
         for (int i = 0; i < 2; i++) {
-            nixies.setIndicator(i, DisplayController::indicators[i]);
+            nixies.SetIndicator(i, DisplayController::Indicators[i]);
         }
 
         vTaskDelay(TASK_TICK_DELAY);
@@ -83,7 +83,7 @@ void taskSetLeds(void* parameter) {
     ledcAttachPin(TUBE_LED_PIN, TUBE_LEDC_CHANNEL);
 
     for (;;) {
-        ledcWrite(TUBE_LEDC_CHANNEL, DisplayController::ledPWM);
+        ledcWrite(TUBE_LEDC_CHANNEL, DisplayController::LedPWM);
 
         vTaskDelay(TASK_TICK_DELAY);
     }
@@ -97,12 +97,12 @@ void taskSetStatusLED(void* parameter) {
     ledcAttachPin(ONBOARD_LED_PIN, ONBOARD_LEDC_CHANNEL);
 
     for (;;) {
-        switch (DisplayController::onboardLEDmode) {
+        switch (DisplayController::OnboardLEDmode) {
             case 1:
                 // Blink
                 // -> LED is turned OFF but turns ON in a blinking matter
-                for (int i = 0; i <= DisplayController::onboardLEDblinkAmount; i++) {
-                    ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
+                for (int i = 0; i <= DisplayController::OnboardLEDblinkAmount; i++) {
+                    ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::OnboardLedPWM);
                     vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
                     ledcWrite(ONBOARD_LEDC_CHANNEL, 0);
                     vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
@@ -113,11 +113,11 @@ void taskSetStatusLED(void* parameter) {
             case 2:
                 // "Inverted" blink
                 // -> LED is turned ON but turns OFF in a blinking matter
-                ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
-                for (int i = 0; i <= DisplayController::onboardLEDblinkAmount; i++) {
+                ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::OnboardLedPWM);
+                for (int i = 0; i <= DisplayController::OnboardLEDblinkAmount; i++) {
                     ledcWrite(ONBOARD_LEDC_CHANNEL, 0);
                     vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
-                    ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
+                    ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::OnboardLedPWM);
                     vTaskDelay(ONBOARD_LED_BLINK_INTERVAL);
                 }
 
@@ -139,7 +139,7 @@ void taskSetStatusLED(void* parameter) {
             }
             default:
                 // Light up using specified PWM, a.k.a mode "0".
-                ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::onboardLedPWM);
+                ledcWrite(ONBOARD_LEDC_CHANNEL, DisplayController::OnboardLedPWM);
                 break;
         }
 

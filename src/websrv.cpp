@@ -66,7 +66,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
         errMsg = "Unknown parameter(s): ";
         for (JsonPair kv : data.as<JsonObject>()) {
             char *validationSet[] = {
-                "indicators",
+                "Indicators",
                 "tubes",
                 "leds",
                 "onboardLed"
@@ -96,14 +96,14 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
     // Indicators
     if (!errorEncountered) {
         errMsg = "";
-        for (JsonPair indicator : data["indicators"].as<JsonObject>()) {
+        for (JsonPair indicator : data["Indicators"].as<JsonObject>()) {
             int indicatorIndex = atol(indicator.key().c_str());
             if (indicatorIndex > 2) {
                 errorEncountered = true;
                 errMsg += "An unknown indicator index has been specified: " + String(indicatorIndex) + ".";
                 break;
             } else {
-                displayController.indicators[indicatorIndex - 1] = indicator.value().as<bool>();
+                displayController.Indicators[indicatorIndex - 1] = indicator.value().as<bool>();
             }
         }
     }
@@ -138,9 +138,9 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
 
                 // All good, update displayController
                 tubeIndex--;
-                displayController.tubeVals[tubeIndex][0] = tubeIndex + 1; // Not really needed anymore, as all tubes are ordered already.
-                displayController.tubeVals[tubeIndex][1] = tube.value()["val"];
-                if (tubePWM != 999) displayController.tubeVals[tubeIndex][2] = tubePWM;
+                displayController.TubeVals[tubeIndex][0] = tubeIndex + 1; // Not really needed anymore, as all tubes are ordered already.
+                displayController.TubeVals[tubeIndex][1] = tube.value()["val"];
+                if (tubePWM != 999) displayController.TubeVals[tubeIndex][2] = tubePWM;
             }
             i++;
         }
@@ -150,13 +150,13 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
     if (!errorEncountered) {
         JsonVariant t = data["leds"];
         if (t) {
-            int ledPWM = t.as<int>();
+            int LedPWM = t.as<int>();
 
-            if ((ledPWM > 255) || (ledPWM < 0)) {
+            if ((LedPWM > 255) || (LedPWM < 0)) {
                 errorEncountered = true;
-                errMsg += "PWM value is invalid: " + String(ledPWM) + ". It must be between 0 and 255.";
+                errMsg += "PWM value is invalid: " + String(LedPWM) + ". It must be between 0 and 255.";
             } else {
-                displayController.ledPWM = ledPWM;
+                displayController.LedPWM = LedPWM;
             }
         }
     }
@@ -177,9 +177,9 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
                     errorEncountered = true;
                     errMsg += "Blink amount is invalid: " + String(blinkAmount) + ". It must be between 1 and 8.";                    
                 } else {
-                    displayController.onboardLedPWM = pwm;
-                    displayController.onboardLEDmode = (mode > 3) ? 0 : mode;
-                    displayController.onboardLEDblinkAmount = blinkAmount;
+                    displayController.OnboardLedPWM = pwm;
+                    displayController.OnboardLEDmode = (mode > 3) ? 0 : mode;
+                    displayController.OnboardLEDblinkAmount = blinkAmount;
                 }
             }
         }
@@ -238,29 +238,29 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
     
     JsonVariant ssid = data["ssid"];
     JsonVariant psk = data["psk"];
-    JsonVariant isAP = data["isAP"];
+    JsonVariant IsAP = data["IsAP"];
     if (ssid && psk) {
         const char* s = ssid.as<const char*>();
         const char* p = psk.as<const char*>();
 
-        if (isAP) {
-            bool t = isAP.as<bool>();
-            if (!(netConfig.writeWiFiConfig(s, p, t))) {
+        if (IsAP) {
+            bool t = IsAP.as<bool>();
+            if (!(netConfig.WriteWiFiConfig(s, p, t))) {
                 errMsg += " Could not write to config.";
             } else {
                 request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
             }
         } else {
-            if (!(netConfig.writeWiFiConfig(s, p))) {
+            if (!(netConfig.WriteWiFiConfig(s, p))) {
                 errMsg += " Could not write to config.";
             } else {
                 request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
             }
         }
 
-    } else if (isAP) {
-        bool t = isAP.as<bool>();
-        if (!(netConfig.writeWiFiConfig(t))) {
+    } else if (IsAP) {
+        bool t = IsAP.as<bool>();
+        if (!(netConfig.WriteWiFiConfig(t))) {
             errMsg += " Could not write to config.";
         } else {
             request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
@@ -296,11 +296,11 @@ void webServerStaticContent() {
         
         StaticJsonDocument<300> responseBody;
         responseBody["buildTime"] = buildTime;
-        responseBody["uptime"] = String(timekeeper.nowEpoch - timekeeper.bootEpoch);
-        responseBody["ntpSource"] = timekeeper.ntpSource;
-        responseBody["utcOffset"] = timekeeper.utcOffset;
+        responseBody["uptime"] = String(timekeeper.NowEpoch - timekeeper.BootEpoch);
+        responseBody["NtpSource"] = timekeeper.NtpSource;
+        responseBody["UtcOffset"] = timekeeper.UtcOffset;
 
-        if (!timekeeper.mountStatus) {
+        if (!timekeeper.MountStatus) {
             responseBody["warning"] = String("The filesystem was not mounted.");
         }
         
@@ -313,10 +313,10 @@ void webServerStaticContent() {
         
         StaticJsonDocument<200> responseBody;
 
-        responseBody["deviceIP"] = netConfig.getIPconfig(0) + "/" + netConfig.getIPconfig(1);
-        responseBody["gateway"] = netConfig.getIPconfig(2);
-        responseBody["dns"] = netConfig.getIPconfig(3);
-        responseBody["mac"] = netConfig.getIPconfig(4);
+        responseBody["deviceIP"] = netConfig.GetIPconfig(0) + "/" + netConfig.GetIPconfig(1);
+        responseBody["gateway"] = netConfig.GetIPconfig(2);
+        responseBody["dns"] = netConfig.GetIPconfig(3);
+        responseBody["mac"] = netConfig.GetIPconfig(4);
 
         serializeJsonPretty(responseBody, *response);
         request->send(response);
@@ -340,31 +340,31 @@ void webServerStaticContent() {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
     
         StaticJsonDocument<400> responseBody;
-        JsonObject objInd = responseBody.createNestedObject("indicators");
-            objInd["1"] = displayController.indicators[0];
-            objInd["2"] = displayController.indicators[1];
+        JsonObject objInd = responseBody.createNestedObject("Indicators");
+            objInd["1"] = displayController.Indicators[0];
+            objInd["2"] = displayController.Indicators[1];
         
-        // If tubeVals were sorted from the beginning, then String(tubeVals[x][y]) wouldn't be necessary.
+        // If TubeVals were sorted from the beginning, then String(TubeVals[x][y]) wouldn't be necessary.
         JsonObject objTub = responseBody.createNestedObject("tubes");
-            JsonObject t1 = objTub.createNestedObject(String(displayController.tubeVals[0][0]));
-                t1["val"] = displayController.tubeVals[0][1];
-                t1["pwm"] = displayController.tubeVals[0][2];
-            JsonObject t2 = objTub.createNestedObject(String(displayController.tubeVals[1][0]));
-                t2["val"] = displayController.tubeVals[1][1];
-                t2["pwm"] = displayController.tubeVals[1][2];
-            JsonObject t3 = objTub.createNestedObject(String(displayController.tubeVals[2][0]));
-                t3["val"] = displayController.tubeVals[2][1];
-                t3["pwm"] = displayController.tubeVals[2][2];
-            JsonObject t4 = objTub.createNestedObject(String(displayController.tubeVals[3][0]));
-                t4["val"] = displayController.tubeVals[3][1];
-                t4["pwm"] = displayController.tubeVals[3][2];
+            JsonObject t1 = objTub.createNestedObject(String(displayController.TubeVals[0][0]));
+                t1["val"] = displayController.TubeVals[0][1];
+                t1["pwm"] = displayController.TubeVals[0][2];
+            JsonObject t2 = objTub.createNestedObject(String(displayController.TubeVals[1][0]));
+                t2["val"] = displayController.TubeVals[1][1];
+                t2["pwm"] = displayController.TubeVals[1][2];
+            JsonObject t3 = objTub.createNestedObject(String(displayController.TubeVals[2][0]));
+                t3["val"] = displayController.TubeVals[2][1];
+                t3["pwm"] = displayController.TubeVals[2][2];
+            JsonObject t4 = objTub.createNestedObject(String(displayController.TubeVals[3][0]));
+                t4["val"] = displayController.TubeVals[3][1];
+                t4["pwm"] = displayController.TubeVals[3][2];
                 
         JsonObject objOled = responseBody.createNestedObject("onboardLed");
-            objOled["pwm"] = displayController.onboardLedPWM;
-            objOled["mode"] = displayController.onboardLEDmode;
-            objOled["blinkAmount"] = displayController.onboardLEDblinkAmount;
+            objOled["pwm"] = displayController.OnboardLedPWM;
+            objOled["mode"] = displayController.OnboardLEDmode;
+            objOled["blinkAmount"] = displayController.OnboardLEDblinkAmount;
             
-        responseBody["leds"] = displayController.ledPWM;
+        responseBody["leds"] = displayController.LedPWM;
         
         responseBody["authRequired"] = (authCode > 0) ? true : false;
 

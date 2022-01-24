@@ -6,12 +6,11 @@
 #include <LITTLEFS.h>
 #include <networkConfig.h>
 
-
 void setup() {
   Serial.begin(115200);
 
   DisplayController dController;
-  dController.onboardLEDmode = 3;
+  dController.OnboardLEDmode = 3;
   xTaskCreate(taskSetDisplay, "Display daemon", 6500, NULL, 1, NULL);
 
   if (!LITTLEFS.begin()) {
@@ -20,10 +19,10 @@ void setup() {
   
   // Network stuff
   NetworkConfig nConfig;
-  nConfig.initConnection();
+  nConfig.InitConnection();
   webServerInit();
   
-  dController.onboardLEDmode = 0;
+  dController.OnboardLEDmode = 0;
 
   // Remaining tasks
   xTaskCreate(taskSetIndicators, "Indicator daemon", 6500, NULL, 1, NULL);
