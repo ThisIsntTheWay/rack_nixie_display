@@ -339,7 +339,7 @@ void webServerStaticContent() {
         
         StaticJsonDocument<200> responseBody;
 
-        responseBody["dhcp"] = netConfig.IsStatic;
+        responseBody["dhcp"] = netConfig.IsStatic ? false : true;
         responseBody["deviceIP"] = netConfig.GetIPconfig(0) + "/" + netConfig.GetIPconfig(1);
         responseBody["gateway"] = netConfig.GetIPconfig(2);
         responseBody["dns"] = netConfig.GetIPconfig(3);
