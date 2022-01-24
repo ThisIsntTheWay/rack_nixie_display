@@ -12,6 +12,9 @@ DisplayController displayController;
 NetworkConfig netConfig;
 Timekeeper timekeeper;
 
+// Landing page
+const char index_html[] PROGMEM = "<html><body><center><h1>Nixie rack display</h1></p>For documentation please see <a href='https://github.com/ThisIsntTheWay/rack_nixie_display/wiki'>the GitHub wiki</a>.</center></body></html>";
+
 AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
     bool errorEncountered = false;
     String errMsg = "";
@@ -289,6 +292,10 @@ void webServerAPIs() {
 
 void webServerStaticContent() {
     server.onNotFound(onRequest);
+
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "text/html", index_html);
+    });
 
     server.on("/api/system", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
