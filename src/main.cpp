@@ -10,8 +10,8 @@ void setup() {
   Serial.begin(115200);
 
   DisplayController dController;
+  xTaskCreate(taskSetStatusLED, "O_LED daemon", 4000, NULL, 1, NULL);
   dController.OnboardLEDmode = 3;
-  xTaskCreate(taskSetDisplay, "Display daemon", 6500, NULL, 1, NULL);
 
   if (!LITTLEFS.begin()) {
     Serial.println("[X] FS mount failure!");
@@ -22,13 +22,12 @@ void setup() {
   nConfig.InitConnection();
   webServerInit();
   
-  dController.OnboardLEDmode = 0;
-
   // Remaining tasks
+  xTaskCreate(taskSetDisplay, "Display daemon", 6500, NULL, 1, NULL);
   xTaskCreate(taskSetIndicators, "Indicator daemon", 6500, NULL, 1, NULL);
-  xTaskCreate(taskSetStatusLED, "O_LED daemon", 4000, NULL, 1, NULL);
   xTaskCreate(taskSetLeds, "T_LED daemon", 4000, NULL, 1, NULL);
   xTaskCreate(taskTimekeeper, "Time daemon", 4000, NULL, 1, NULL);
+  dController.OnboardLEDmode = 0;
 
   Serial.print(vt_green); Serial.println("System ready.");
   Serial.print(vt_default_colour);
