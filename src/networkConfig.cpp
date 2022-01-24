@@ -332,6 +332,8 @@ bool NetworkConfig::WriteWiFiConfig(bool IsAP) {
 */
 /**************************************************************************/
 void NetworkConfig::InitConnection() {
+    WiFi.setHostname("nixie-rack-display");
+
     bool a = this->parseNetConfig();
     if (!a) {
         Serial.println("Could not parse net config.");
