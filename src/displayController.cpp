@@ -49,7 +49,7 @@ void taskSetDisplay(void* parameter) {
             }
         }
 
-        // Blank all tubes that were not considered. (Their index was missing in tubeVals)
+        // Blank all tubes that were not considered. (Their index is missing in tubeVals)
         for (int i = 0; i < 4; i++) {
             if (t[i] == 11) {
                 ledcWrite(i, 0);
@@ -125,7 +125,7 @@ void taskSetStatusLED(void* parameter) {
                 break;
             case 3: {
                 // Pulsate
-                // Duty cycles above 170 are hardly perceived as brighter, so this serves as the ceiling.
+                // Duty cycles above 170 are hardly perceived as brighter, so this value serves as the ceiling.
                 uint8_t maxPWM = 170;
                 for (int i = 0; i < maxPWM; i++) {
                     ledcWrite(ONBOARD_LEDC_CHANNEL, i);
