@@ -233,11 +233,13 @@ AsyncCallbackJsonWebHandler *systemHandler = new AsyncCallbackJsonWebHandler("/a
 });
 
 AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/api/network", [](AsyncWebServerRequest *request, JsonVariant &json) {
-    StaticJsonDocument<200> data;
+    StaticJsonDocument<385> data;
     if (json.is<JsonArray>()) { data = json.as<JsonArray>(); }
     else if (json.is<JsonObject>()) { data = json.as<JsonObject>(); }
     
     String errMsg = "Request cannot be processed:";
+
+    bool noWiFicontext = false;
     
     JsonVariant ssid = data["ssid"];
     JsonVariant psk = data["psk"];
@@ -262,14 +264,31 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
         }
 
     } else if (IsAP) {
-        bool t = IsAP.as<bool>();
-        if (!(netConfig.WriteWiFiConfig(t))) {
+        if (!(netConfig.WriteWiFiConfig(IsAP.as<bool>()))) {
             errMsg += " Could not write to config.";
         } else {
             request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated.\"}");
         }
     } else {
-        errMsg += " No valid parameters have been supplied.";
+        noWiFicontext = true;
+    }
+
+    JsonObject ipConfigJson = data["ipConfig"];
+    if (ipConfigJson) {
+        StaticJsonDocument<200> ipConfigDoc = ipConfigJson;
+        
+        bool b = netConfig.WriteIPConfig(ipConfigDoc);
+        ipConfigDoc.clear();
+
+        if (b) {
+            request->send(200, "application/json", "{\"status\": \"success\", \"message\": \"Configuration was updated, changes effective on next boot.\"}");
+        } else {
+            request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"Configuration was not updated.\"}");
+        }
+    } else {
+        if (noWiFicontext) {
+            errMsg += " No valid parameters have been supplied.";
+        }
     }
     
     // Default to HTTP/400

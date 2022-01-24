@@ -16,7 +16,8 @@ class NetworkConfig {
         bool WriteWiFiConfig(bool);
         bool WriteWiFiConfig(const char*, const char*);
         bool WriteWiFiConfig(const char*, const char*, bool);
-        bool WriteIPConfig(JsonDocument& refDoc);
+        bool WriteIPConfig(JsonDocument&);
+        bool ApplyNetConfig();
 
         String GetIPconfig(int8_t);
 
@@ -31,7 +32,6 @@ class NetworkConfig {
         bool isStatic;
 
         bool parseNetConfig();
-        bool applyNetConfig();
         void initSoftAP();
         bool splitIPaddress(char*, int*);
         
