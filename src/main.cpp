@@ -6,20 +6,26 @@
 #include <LITTLEFS.h>
 #include <networkConfig.h>
 
-NetworkConfig nConfig;
 
 void setup() {
   Serial.begin(115200);
+
+  DisplayController dController;
+  dController.onboardLEDmode = 3;
+  xTaskCreate(taskSetDisplay, "Display daemon", 6500, NULL, 1, NULL);
 
   if (!LITTLEFS.begin()) {
     Serial.println("[X] FS mount failure!");
   }
   
+  // Network stuff
+  NetworkConfig nConfig;
   nConfig.initConnection();
-
   webServerInit();
+  
+  dController.onboardLEDmode = 0;
 
-  xTaskCreate(taskSetDisplay, "Display daemon", 6500, NULL, 1, NULL);
+  // Remaining tasks
   xTaskCreate(taskSetIndicators, "Indicator daemon", 6500, NULL, 1, NULL);
   xTaskCreate(taskSetStatusLED, "O_LED daemon", 4000, NULL, 1, NULL);
   xTaskCreate(taskSetLeds, "T_LED daemon", 4000, NULL, 1, NULL);
