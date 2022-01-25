@@ -26,7 +26,7 @@ Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
 # (<tubeDigit>, <illuminationTime>)
 $digitConfig = @((1, 0.8), (2, 1.5), (3, 1.5), (4, 0.8), (5, 0.1), (6, 0.1), (7, 0.3), (8, 0.1), (9, 0.3))
 while ($true) {
-    for ($i = 0; $i -le 9; $i++) {
+    for ($i = 0; $i -lt 9; $i++) {
         $digit = $digitConfig[$i][0]
         $sleepTime = [double]$digitConfig[$i][1] * 60
 
