@@ -1,4 +1,5 @@
 #include <authentication.h>
+#include <arduino.h>
 
 /**************************************************************************/
 /*!
@@ -6,21 +7,25 @@
 */
 /**************************************************************************/
 Authentication::Authentication() {
-    EEPROM.begin(EEPROM_REGION);
-    this->authCodeGenerated = (uint8_t) EEPROM.read(EEPROM_AUTH_GEN_FLAG_ADDR);
+    if (EEPROM.begin(EEPROM_REGION)) {
+        delay(500);
+        this->authCodeGenerated = (uint8_t) EEPROM.read(EEPROM_AUTH_GEN_FLAG_ADDR);
 
-    // Random ADCs as entropy source
-    pinMode(17, INPUT);
-    pinMode(14, INPUT);
-    this->authCodeSeed = analogRead(17) * analogRead(14);
+        // Create entropy
+        pinMode(14, INPUT);
+        this->authCodeSeed = analogRead(14) * millis();
 
-    // Either retreive or generate authCode
-    if (this->authCodeGenerated != 1) {
-        EEPROM.put(EEPROM_AUTH_GEN_FLAG_ADDR, 1);
-        this->generateAuthCode();
+        // Either retreive or generate authCode
+        Serial.printf("authCodeGen is: %d\n", this->authCodeGenerated);
+        if (this->authCodeGenerated != 1) {
+            EEPROM.put(EEPROM_AUTH_GEN_FLAG_ADDR, 1);
+            this->generateAuthCode();
+        }
+
+        this->getAuthCode();
+    } else {
+        delay(500);
     }
-
-    this->getAuthCode();
 }
 
 
@@ -54,10 +59,15 @@ void Authentication::generateAuthCode() {
         letter = rnd + 'a';
         if(rnd > 26) letter = (rnd - 26);
 
+        Serial.printf("%c", letter);
+
         EEPROM.write(EEPROM_AUTHCODE_ADDR + i, letter);
     }
+    Serial.println();
 
-    EEPROM.commit();
+    if (!(EEPROM.commit())) {
+        Serial.println("EEPROM commit failure.");
+    }
 }
 
 /**************************************************************************/
@@ -66,9 +76,15 @@ void Authentication::generateAuthCode() {
 */
 /**************************************************************************/
 void Authentication::getAuthCode() {
+    Serial.print("Read: ");
     for (int i = 0; i < 12; i++) {
-        this->authCode[i] = (char) EEPROM.read(EEPROM_AUTHCODE_ADDR + (i + 1));
+        char read = EEPROM.read(EEPROM_AUTHCODE_ADDR + (i + 1));
+        Serial.printf("%c", read);
+
+        this->authCode[i] = read;
     }
+
+    Serial.println();
 
     this->authCode[12] = '\0';
 }
@@ -80,6 +96,8 @@ void Authentication::getAuthCode() {
 */
 /**************************************************************************/
 String Authentication::GetAuthCode() {
+    this->generateAuthCode();
+    this->getAuthCode();
     return (String)this->authCode;
 }
 

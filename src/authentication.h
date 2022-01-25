@@ -6,7 +6,6 @@
 #define EEPROM_AUTH_VIEW_FLAG_ADDR 1
 #define EEPROM_AUTHCODE_ADDR 2
 
-#include <arduino.h>
 #include <EEPROM.h>
 
 class Authentication {
