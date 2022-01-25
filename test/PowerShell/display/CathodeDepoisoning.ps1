@@ -23,12 +23,17 @@ Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
         "Indicators" = @{ "1" = $false; "2" = $false }
     } | ConvertTo-Json)
 
-
+# (<tubeDigit>, <illuminationTime>)
+$digitConfig = @((1, 0.8), (2, 1.5), (3, 1.5), (4, 0.8), (5, 0.1), (6, 0.1), (7, 0.3), (8, 0.1), (9, 0.3))
 while ($true) {
     for ($i = 0; $i -le 9; $i++) {
-        $i; Invoke-RestMethod -Method POST -uri $uri -ContentType application/json -body (Create-RequestBody $i) | out-null
-    }
-    for ($i = 8; $i -gt 0; $i--) {
-        $i; Invoke-RestMethod -Method POST -uri $uri -ContentType application/json -body (Create-RequestBody $i) | out-null
+        $sleepTime = $digitConfig[$i][0] * 60
+        $digit = $digitConfig[$i][0]
+
+        Write-Host "$(get-date -f "[HH:mm:ss]") - Digit: '$digit', sleep time: '${sleepTime}s'. " -nonewline
+
+        $i; Invoke-RestMethod -Method POST -uri $uri -ContentType application/json -body (Create-RequestBody $digit) | out-null
+        if ($?) { Write-Host "> OK" -f green }
+        Start-Sleep -s $sleepTime
     }
 }
