@@ -5,6 +5,7 @@
 
 class Nixies {
     public:
+        Nixies();
         Nixies(int, int, int);
 
         void SetDisplay(int[4]);

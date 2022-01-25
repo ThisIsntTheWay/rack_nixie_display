@@ -11,6 +11,14 @@ int optos[] = {19, 18, 4, 15, 32, 33};    // 1 - 4: IN-4, 5 & 6: INS-1
 
 /**************************************************************************/
 /*!
+    @brief Default constructor.
+*/
+/**************************************************************************/
+Nixies::Nixies() {
+}
+
+/**************************************************************************/
+/*!
     @brief Prepares shift registers and opto isolators.
     @param DS DS pin of shift registers.
     @param ST ST pin of shift registers.
