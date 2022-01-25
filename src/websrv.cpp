@@ -371,7 +371,6 @@ void webServerStaticContent() {
             objInd["1"] = displayController.Indicators[0];
             objInd["2"] = displayController.Indicators[1];
         
-        // If TubeVals were sorted from the beginning, then String(TubeVals[x][y]) wouldn't be necessary.
         JsonObject objTub = responseBody.createNestedObject("tubes");
             JsonObject t1 = objTub.createNestedObject(String(displayController.TubeVals[0][0]));
                 t1["val"] = displayController.TubeVals[0][1];
