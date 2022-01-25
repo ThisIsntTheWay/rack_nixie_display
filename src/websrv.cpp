@@ -369,7 +369,7 @@ void webServerStaticContent() {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
         StaticJsonDocument<100> responseBody;
 
-        JsonObject objInd = responseBody.createNestedObject("Indicators");
+        JsonObject objInd = responseBody.createNestedObject("indicators");
             objInd["1"] = displayController.Indicators[0];
             objInd["2"] = displayController.Indicators[1];
         
@@ -421,7 +421,7 @@ void webServerStaticContent() {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
     
         StaticJsonDocument<400> responseBody;
-        JsonObject objInd = responseBody.createNestedObject("Indicators");
+        JsonObject objInd = responseBody.createNestedObject("indicators");
             objInd["1"] = displayController.Indicators[0];
             objInd["2"] = displayController.Indicators[1];
         
