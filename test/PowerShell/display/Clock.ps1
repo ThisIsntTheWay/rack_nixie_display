@@ -10,7 +10,7 @@ while ($true) {
     [int]$time = Get-Date -f "HHmm"
 
     # Invert indicator
-    $indicator = [bool]!((Invoke-RestMethod ($uri + "/indicators")).indicators.1)
+    $indicator = [bool]!((Invoke-RestMethod ($uri + "/indicators")).indicators.2)
 
     $b = @{
         "tubes" = @{
@@ -24,11 +24,11 @@ while ($true) {
             "2" = $indicator
         }
     } | ConvertTo-Json
-
-
     Write-Host "[$(Get-Date -f 'HH:mm:ss')] " -NoNewline -fore cyan
+    
+    $stopwatch =  [system.diagnostics.stopwatch]::StartNew()
     Invoke-RestMethod -Method POST -uri $uri -ContentType application/json -body $b | out-null
-    if ($?) { Write-Host "Update OK " -nonewline; Write-Host "($time)" -f yellow }
+    if ($?) { $stopwatch.Stop(); Write-Host "Update OK " -nonewline -f green; Write-Host "($($stopwatch.ElapsedMilliseconds)ms)" -f yellow }
 
     Start-Sleep -s 1
 }
