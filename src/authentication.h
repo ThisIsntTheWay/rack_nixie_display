@@ -12,12 +12,14 @@
 class Authentication {
     public:
         Authentication();
+
         String GetAuthCode();
+        bool CanShowAuthCode();
+        bool SetFlag();
 
     private:
         void generateAuthCode();
         void getAuthCode();
-        bool setFlag();
 
         uint8_t authCodeGenerated;
         uint8_t authCodeSeen;

@@ -30,7 +30,7 @@ Authentication::Authentication() {
     @return Returns TRUE if flag was set, FALSE if already present.
 */
 /**************************************************************************/
-bool Authentication::setFlag() {
+bool Authentication::SetFlag() {
     if (this->authCodeSeen != 1) {
         EEPROM.put(EEPROM_AUTH_VIEW_FLAG_ADDR, 1);
         return true;
@@ -73,7 +73,6 @@ void Authentication::getAuthCode() {
     this->authCode[12] = '\0';
 }
 
-
 /**************************************************************************/
 /*!
     @brief Retrieves the current authCode as stored in the class.
@@ -82,4 +81,17 @@ void Authentication::getAuthCode() {
 /**************************************************************************/
 String Authentication::GetAuthCode() {
     return (String)this->authCode;
+}
+
+/**************************************************************************/
+/*!
+    @brief Retrieves the current authCode as stored in the class.
+    @return String of authentication code.
+*/
+/**************************************************************************/
+bool Authentication::CanShowAuthCode() {
+    if (this->authCodeSeen != 1)
+        return true;
+
+    return false;
 }
