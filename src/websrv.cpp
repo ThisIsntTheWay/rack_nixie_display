@@ -69,7 +69,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
         errMsg = "Unknown parameter(s): ";
         for (JsonPair kv : data.as<JsonObject>()) {
             char *validationSet[] = {
-                "Indicators",
+                "indicators",
                 "tubes",
                 "leds",
                 "onboardLed"
@@ -99,7 +99,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
     // Indicators
     if (!errorEncountered) {
         errMsg = "";
-        for (JsonPair indicator : data["Indicators"].as<JsonObject>()) {
+        for (JsonPair indicator : data["indicators"].as<JsonObject>()) {
             int indicatorIndex = atol(indicator.key().c_str());
             if (indicatorIndex > 2) {
                 errorEncountered = true;
