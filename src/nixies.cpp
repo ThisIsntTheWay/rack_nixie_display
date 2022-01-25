@@ -86,7 +86,7 @@ void Nixies::BlankDisplay() {
 
     // Turn anode(s) off to prevent floating cathodes
     int aSize = sizeof(optos)/sizeof(optos[0]);
-    for (int i = 1; i < aSize; i++) {
+    for (int i = 0; i < aSize; i++) {
         ledcWrite(i, 0);
     }
 }
