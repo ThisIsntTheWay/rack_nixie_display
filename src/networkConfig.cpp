@@ -361,7 +361,6 @@ bool NetworkConfig::WriteWiFiConfig(bool IsAP) {
 /**************************************************************************/
 void NetworkConfig::InitConnection() {
     WiFi.setHostname("nixie-rack-display");
-    this->ApplyNetConfig();
 
     bool a = this->parseNetConfig();
     if (!a) {
@@ -408,6 +407,8 @@ void NetworkConfig::InitConnection() {
 
         // AP fallback if connection timed out.
         if (isSuccess) {
+            this->ApplyNetConfig();
+            
             Serial.println(F("Connected. IP config:"));
             Serial.print("> Local IP:"); Serial.println(WiFi.localIP());
             Serial.print("> Netmask:"); Serial.println(WiFi.subnetMask());
