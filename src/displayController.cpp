@@ -131,7 +131,7 @@ void taskSetStatusLED(void* parameter) {
                     ledcWrite(ONBOARD_LEDC_CHANNEL, i);
                     vTaskDelay(10);
                 }
-                for (int i = 170; i > maxPWM; i--) {
+                for (int i = 170; i > 0; i--) {
                     ledcWrite(ONBOARD_LEDC_CHANNEL, i);
                     vTaskDelay(10);
                 }
