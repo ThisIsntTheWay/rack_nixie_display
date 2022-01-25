@@ -353,7 +353,7 @@ void webServerStaticContent() {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
 
         int tempRaw = analogRead(34);
-        float tempC = (((tempRaw * 3.3) / 1024.0) -0.5) * 100;
+        float tempC = ((tempRaw / 1023.0) -0.5) * 100;
         
         StaticJsonDocument<200> responseBody;
         responseBody["temperatureRaw"] = String(tempRaw);
@@ -363,6 +363,60 @@ void webServerStaticContent() {
         request->send(response);
     });
     
+    // api/display    
+    // Only display indicator status
+    server.on("/api/display/indicators", HTTP_GET, [](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        StaticJsonDocument<100> responseBody;
+
+        JsonObject objInd = responseBody.createNestedObject("Indicators");
+            objInd["1"] = displayController.Indicators[0];
+            objInd["2"] = displayController.Indicators[1];
+        
+        serializeJsonPretty(responseBody, *response);
+        request->send(response);
+    });
+    
+    // Only display tube status
+    server.on("/api/display/tubes", HTTP_GET, [](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        StaticJsonDocument<256> responseBody;
+
+        JsonObject objTub = responseBody.createNestedObject("tubes");
+            JsonObject t1 = objTub.createNestedObject(String(displayController.TubeVals[0][0]));
+                t1["val"] = displayController.TubeVals[0][1];
+                t1["pwm"] = displayController.TubeVals[0][2];
+            JsonObject t2 = objTub.createNestedObject(String(displayController.TubeVals[1][0]));
+                t2["val"] = displayController.TubeVals[1][1];
+                t2["pwm"] = displayController.TubeVals[1][2];
+            JsonObject t3 = objTub.createNestedObject(String(displayController.TubeVals[2][0]));
+                t3["val"] = displayController.TubeVals[2][1];
+                t3["pwm"] = displayController.TubeVals[2][2];
+            JsonObject t4 = objTub.createNestedObject(String(displayController.TubeVals[3][0]));
+                t4["val"] = displayController.TubeVals[3][1];
+                t4["pwm"] = displayController.TubeVals[3][2];
+        
+        serializeJsonPretty(responseBody, *response);
+        request->send(response);
+    });
+
+    // Only LED status
+    server.on("/api/display/leds", HTTP_GET, [](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        StaticJsonDocument<128> responseBody;
+
+        JsonObject objOled = responseBody.createNestedObject("onboardLed");
+            objOled["pwm"] = displayController.OnboardLedPWM;
+            objOled["mode"] = displayController.OnboardLEDmode;
+            objOled["blinkAmount"] = displayController.OnboardLEDblinkAmount;
+            
+        responseBody["leds"] = displayController.LedPWM;
+        
+        serializeJsonPretty(responseBody, *response);
+        request->send(response);
+    });
+    
+    // Complete information
     server.on("/api/display", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
     
