@@ -9,9 +9,9 @@
 
 class Authentication {
     public:
-        Authentication();
-
         String GetAuthCode();
+        uint8_t GetCodeGenFlag();
+        void Initialize();
         bool CanShowAuthCode();
         bool SetFlag();
 
@@ -19,10 +19,10 @@ class Authentication {
         void generateAuthCode();
         void getAuthCode();
 
-        uint8_t authCodeGenerated;
-        uint8_t authCodeSeen;
-        char authCode[13];
+        byte authCodeGenerated;
+        byte authCodeSeen;
         int authCodeSeed;
+        char authCode[13];
 };
 
 #endif

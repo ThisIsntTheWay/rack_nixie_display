@@ -6,23 +6,28 @@
     @brief Constructor, retrieves all necessary data from the EEPROM.
 */
 /**************************************************************************/
-Authentication::Authentication() {
-    this->authCodeGenerated = (uint8_t) EEPROM.read(EEPROM_AUTH_GEN_FLAG_ADDR);
-    this->authCodeSeen = (uint8_t) EEPROM.read(EEPROM_AUTH_VIEW_FLAG_ADDR);
+void Authentication::Initialize() {
+    this->authCodeGenerated = (byte) EEPROM.read(EEPROM_AUTH_GEN_FLAG_ADDR);
+    this->authCodeSeen = (byte) EEPROM.read(EEPROM_AUTH_VIEW_FLAG_ADDR);
 
     // Create entropy -> Based on floating ADC and TMP36 sensor.
-    pinMode(14, INPUT);
-    this->authCodeSeed = (analogRead(14) * analogRead(34)) * millis();
+    pinMode(35, INPUT);
+    this->authCodeSeed = (analogRead(35) * analogRead(34)) * millis();
 
-    // Either retreive or generate authCode
+    // Generate an authCode if required.
     if (this->authCodeGenerated != 1) {
-        EEPROM.put(EEPROM_AUTH_GEN_FLAG_ADDR, 1);
+        EEPROM.write(EEPROM_AUTH_GEN_FLAG_ADDR, 1);
         this->generateAuthCode();
     }
 
     this->getAuthCode();
 }
 
+uint8_t Authentication::GetCodeGenFlag() {
+    this->authCodeGenerated = EEPROM.read(EEPROM_AUTH_GEN_FLAG_ADDR);
+
+    return this->authCodeGenerated;
+}
 
 /**************************************************************************/
 /*!
@@ -57,14 +62,15 @@ void Authentication::generateAuthCode() {
         letter = rnd + 'a';
         if(rnd > 26) letter = (rnd - 26);
 
-        Serial.printf("%c", letter);
-
         EEPROM.write(EEPROM_AUTHCODE_ADDR + i, letter);
     }
     Serial.println();
 
+    // Set code generated flag
+    EEPROM.write(EEPROM_AUTH_GEN_FLAG_ADDR, 1);
+
     if (!(EEPROM.commit())) {
-        Serial.println("EEPROM commit failure.");
+        Serial.println("[X] EEPROM commit failure.");
     }
 }
 
@@ -74,7 +80,7 @@ void Authentication::generateAuthCode() {
 */
 /**************************************************************************/
 void Authentication::getAuthCode() {
-    Serial.print("Read: ");
+    Serial.print(F("[i] EEPROM authCode: "));
     for (int i = 0; i < 12; i++) {
         char read = EEPROM.read(EEPROM_AUTHCODE_ADDR + i);
         Serial.printf("%c", read);
@@ -94,7 +100,6 @@ void Authentication::getAuthCode() {
 */
 /**************************************************************************/
 String Authentication::GetAuthCode() {
-    this->getAuthCode();
     return (String)this->authCode;
 }
 
@@ -106,7 +111,7 @@ String Authentication::GetAuthCode() {
 /**************************************************************************/
 bool Authentication::CanShowAuthCode() {
     this->authCodeSeen = EEPROM.read(EEPROM_AUTH_VIEW_FLAG_ADDR);
-    
+
 #ifdef DEBUG
     Serial.printf("FLAG READ: %d\n", this->authCodeSeen);
 #endif

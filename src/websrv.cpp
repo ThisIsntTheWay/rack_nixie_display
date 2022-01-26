@@ -1,6 +1,7 @@
 #include <websrv.h>
 #include <AsyncElegantOTA.h>
 #include <networkConfig.h>
+#include <authentication.h>
 
 //#define DEBUG
 
@@ -8,6 +9,7 @@ int authCode = 0;
 
 AsyncWebServer server(80);
 
+Authentication authenticator;
 DisplayController displayController;
 NetworkConfig netConfig;
 Timekeeper timekeeper;
@@ -316,6 +318,16 @@ void webServerStaticContent() {
         request->send(200, "text/html", index_html);
     });
 
+    server.on("/api/auth", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (authenticator.CanShowAuthCode()) {
+            authenticator.GetAuthCode();
+            authenticator.SetFlag();
+            request->send(200, "text/plain", authenticator.GetAuthCode());
+        } else {
+            request->send(403, "text/plain", "Not permitted.");
+        }
+    });
+
     server.on("/api/system", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
         String buildTime = __DATE__ + String(" ") + __TIME__;
@@ -454,6 +466,9 @@ void webServerStaticContent() {
 }
 
 void webServerInit() {
+    // EEPROM readings are done later in order to prevent race conditions
+    authenticator.Initialize();
+
     webServerAPIs();
     webServerStaticContent();
 

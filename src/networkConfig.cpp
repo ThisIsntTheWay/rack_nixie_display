@@ -409,10 +409,10 @@ void NetworkConfig::InitConnection() {
         if (isSuccess) {
             this->ApplyNetConfig();
             
-            Serial.println(F("Connected. IP config:"));
-            Serial.print("> Local IP:"); Serial.println(WiFi.localIP());
-            Serial.print("> Netmask:"); Serial.println(WiFi.subnetMask());
-            Serial.print("> Gateway: "); Serial.println(WiFi.gatewayIP());
+            Serial.println(F("Connected! IP config: "));
+            Serial.print("> IP: "); Serial.println(WiFi.localIP());
+            Serial.print("> NM: "); Serial.println(WiFi.subnetMask());
+            Serial.print("> GW: "); Serial.println(WiFi.gatewayIP());
         } else {
             this->IsAP = true;
             this->initSoftAP();
