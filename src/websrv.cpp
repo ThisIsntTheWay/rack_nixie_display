@@ -241,7 +241,7 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
         return;
     } else {
         if (authenticator.GetAuthCode() != h->value()) {
-            request->send(400, "application/json", "{\"status\": \"error\", \"message\": \"Invalid authentication code.\"}");
+            request->send(403, "application/json", "{\"status\": \"error\", \"message\": \"Invalid authentication code.\"}");
             return;
         }
     }
