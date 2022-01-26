@@ -37,7 +37,7 @@ function Calculate-Temperature([int]$raw, [bool]$asArray = $true) {
 # ---------------------------------------------------------------------------------------------
 Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
         "onboardLed" = @{ "mode" = 3}
-        "Indicators" = @{ "1" = $false; "2" = $true }
+        "indicators" = @{ "1" = $false; "2" = $true }
     } | ConvertTo-Json)
 
 while ($true) {

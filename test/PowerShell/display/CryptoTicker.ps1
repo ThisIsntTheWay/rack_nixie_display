@@ -30,7 +30,7 @@ while ($true) {
             "3" = @{ "val" = [math]::Truncate(($a / 10) % 10); "pwm" = 255 }
             "4" = @{ "val" = [math]::Truncate($a % 10); "pwm" = 255 }
         }
-        "Indicators" = @{ "1" = $false; "2" = $false }
+        "indicators" = @{ "1" = $false; "2" = $false }
     }
     
     # Determine which indicator to show

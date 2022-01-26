@@ -17,7 +17,7 @@ while ($true) {
             "3" = @{ "val" = [math]::Truncate(($a / 10) % 10); "pwm" = 255 }
             "4" = @{ "val" = [math]::Truncate($a % 10); "pwm" = 255 }
         }
-        "Indicators" = @{ "1" = $false }
+        "indicators" = @{ "1" = $false }
     } | convertto-json
 
     Write-Host "[$(Get-Date -f 'HH:mm:ss')] " -NoNewline -fore cyan

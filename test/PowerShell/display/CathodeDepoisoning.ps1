@@ -20,7 +20,7 @@ function Create-RequestBody([int]$num) {
 # ---------------------------------------------------------------------------------------------
 Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
         "onboardLed" = @{ "mode" = 3}
-        "Indicators" = @{ "1" = $false; "2" = $false }
+        "indicators" = @{ "1" = $false; "2" = $false }
     } | ConvertTo-Json) | out-null
 
 # (<tubeDigit>, <illuminationTime>)
