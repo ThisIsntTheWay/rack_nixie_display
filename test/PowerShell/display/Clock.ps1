@@ -6,11 +6,17 @@ $ProgressPreference = 'SilentlyContinue'
 $targetIP = "192.168.1.176"
 $uri = "http://$targetIP/api/display"
 
+$indicator = $true
+
 while ($true) {
+    $oldSec = $newSec
+    $newSec = (Get-Date).second
+
     [int]$time = Get-Date -f "HHmm"
 
     # Invert indicator
-    $indicator = [bool]!((Invoke-RestMethod ($uri + "/indicators")).indicators.2)
+    #$indicator = [bool]!((Invoke-RestMethod ($uri + "/indicators")).indicators.2)
+    $indicator = !$indicator
 
     $b = @{
         "tubes" = @{
@@ -27,8 +33,10 @@ while ($true) {
     Write-Host "[$(Get-Date -f 'HH:mm:ss')] " -NoNewline -fore cyan
     
     $stopwatch =  [system.diagnostics.stopwatch]::StartNew()
-    Invoke-RestMethod -Method POST -uri $uri -ContentType application/json -body $b | out-null
-    if ($?) { $stopwatch.Stop(); Write-Host "Update OK " -nonewline -f green; Write-Host "($($stopwatch.ElapsedMilliseconds)ms)" -f yellow }
+    $a = $null; $a = Invoke-RestMethod -Method POST -uri $uri -ContentType application/json -body $b
+    $stopwatch.Stop();
+
+    if ($a) { Write-Host "Update OK " -nonewline -f green; Write-Host "($($stopwatch.ElapsedMilliseconds)ms)" -f yellow }
 
     Start-Sleep -s 1
 }
