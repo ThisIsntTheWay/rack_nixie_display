@@ -322,7 +322,8 @@ void wsProcessMsg(void *arg, uint8_t *data, size_t len, AsyncWebSocketClient *cl
         data[len] = 0;
 
         // Data retrieval
-        if (strcmp((char*)data, "GET_TUBES") == 0) {
+        char* castData = (char*) data;
+        if (strcmp(castData, "GET_TUBES") == 0) {
             StaticJsonDocument<256> response;
             JsonObject t1 = response.createNestedObject(String(displayController.TubeVals[0][0]));
                 t1["val"] = displayController.TubeVals[0][1];
@@ -342,7 +343,7 @@ void wsProcessMsg(void *arg, uint8_t *data, size_t len, AsyncWebSocketClient *cl
             ws.text(client->id(), data, len);
         }
     
-        if (strcmp((char*)data, "GET_INDICATORS") == 0) {
+        if (strcmp(castData, "GET_INDICATORS") == 0) {
             StaticJsonDocument<100> response;
             response["1"] = displayController.Indicators[0];
             response["2"] = displayController.Indicators[1];
@@ -352,7 +353,7 @@ void wsProcessMsg(void *arg, uint8_t *data, size_t len, AsyncWebSocketClient *cl
             ws.text(client->id(), data, len);
         }
         
-        if (strcmp((char*)data, "GET_LEDS") == 0) {
+        if (strcmp(castData, "GET_LEDS") == 0) {
             StaticJsonDocument<128> response;
 
             JsonObject objOled = response.createNestedObject("onboardLed");
@@ -365,6 +366,14 @@ void wsProcessMsg(void *arg, uint8_t *data, size_t len, AsyncWebSocketClient *cl
             char data[64];
             size_t len = serializeJson(response, data);
             ws.text(client->id(), data, len);
+        }
+   
+        // Configuration
+        String t = castData;
+        if (t.startsWith("SET_INDICATORS")) {
+            wsParseCommand(castData, 1);
+
+            ws.text(client->id(), "OK");
         }
     }
 }
@@ -388,6 +397,24 @@ void wsOnEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
     case WS_EVT_ERROR:
         break;
   }
+}
+
+bool wsParseCommand(char* ref, uint8_t mode) {
+    size_t len = strlen(ref);
+    Serial.printf("Dealing with length of %d\n",len);
+
+    // Modes:
+    // 1: Tubes
+    // 2: Indicators
+    // 3: LEDs
+    switch (mode) {
+        case 2: {
+            // Array start: 15 (First argument)
+            break;
+        }
+    }
+
+    return true;
 }
 
 /* -------------------
