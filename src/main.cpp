@@ -5,11 +5,12 @@
 #include <timekeeper.h>
 #include <LITTLEFS.h>
 #include <networkConfig.h>
+#include <EEPROM.h>
 
 /* -----------------------
             VARS
    ----------------------- */
-
+#define EEPROM_REGION 256
 #define INTERACT_BUTTON_PIN 21
 #define RESET_DELAY_MS 5000
 
@@ -32,6 +33,9 @@ void setup() {
   DisplayController dController;
   xTaskCreate(taskSetStatusLED, "O_LED daemon", 4000, NULL, 4, &taskOLed);
   dController.OnboardLEDmode = 3;
+
+  // EEPROM must be initialized before LittleFS, otherwise it will fail.
+  EEPROM.begin(EEPROM_REGION);
 
   if (!LITTLEFS.begin()) {
     Serial.println("[X] FS mount failure!");
@@ -88,6 +92,14 @@ void loop() {
         } else {
           Serial.println(F(" > Could not format."));
         }
+
+        // Destroy EEPROM
+        Serial.printf(" > Formatting %d bytes of EEPROM...\n", EEPROM_REGION);
+        for (int i = 0 ; i < EEPROM_REGION; i++) {
+          EEPROM.write(i, 0);
+        }
+
+        EEPROM.commit();
 
         Serial.println(F(" > Rebooting..."));
         ESP.restart();
