@@ -19,6 +19,7 @@ TaskHandle_t taskIndicator;
 TaskHandle_t taskOLed;
 TaskHandle_t taskTLed;
 TaskHandle_t taskTime;
+TaskHandle_t taskWSClean;
 
 bool buttonState = true;
 bool buttonIsBeingPressed = false;
@@ -51,6 +52,7 @@ void setup() {
   xTaskCreate(taskSetIndicators, "Indicator daemon", 6500, NULL, 4, &taskIndicator);
   xTaskCreate(taskSetLeds, "T_LED daemon", 4000, NULL, 4, &taskTLed);
   xTaskCreate(taskTimekeeper, "Time daemon", 4000, NULL, 3, &taskTime);
+  xTaskCreate(taskWScleanup, "WS client GC", 4000, NULL, 3, &taskWSClean);
   dController.OnboardLEDmode = 0;
 
   // Interact button
@@ -80,6 +82,7 @@ void loop() {
         vTaskDelete(taskOLed);
         vTaskDelete(taskTLed);
         vTaskDelete(taskTime);
+        vTaskDelete(taskWSClean);
 
         // Blank nixies, dim board LEDs
         Nixies n; n.BlankDisplay();

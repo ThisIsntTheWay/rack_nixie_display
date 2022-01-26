@@ -1,13 +1,18 @@
 #include <websrv.h>
-#include <AsyncElegantOTA.h>
-#include <networkConfig.h>
 #include <authentication.h>
+#include <AsyncElegantOTA.h>
+#include <ESPAsyncWebServer.h>
 
-//#define DEBUG
+#define DEBUG
+
+/* -------------------
+    Vars, instances
+   ------------------- */
 
 int authCode = 0;
 
 AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
 
 Authentication authenticator;
 DisplayController displayController;
@@ -17,6 +22,10 @@ Timekeeper timekeeper;
 // Landing page
 const char index_html[] PROGMEM = "<html><head><title>Nixie rack display</title></head><body><center><h1>Nixie rack display</h1></p>For documentation, please see the <a href='https://github.com/ThisIsntTheWay/rack_nixie_display/wiki'>GitHub wiki</a>.</center></body></html>";
 
+/* -------------------
+    POST endpoints
+   ------------------- */
+
 AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/api/display", [](AsyncWebServerRequest *request, JsonVariant &json) {
     bool errorEncountered = false;
     String errMsg = "";
@@ -25,10 +34,6 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
     // This is done using the parameter "auth" in the URI and must be a number.
     int args = request->args(); 
     bool authPresent = false;
-
-    #ifdef DEBUG
-        Serial.printf("[!] Authcode set: %d\n", authCode);
-    #endif DEBUG
 
     for (int i = 0 ; i < args ; i++) {
         if (strcmp(request->argName(i).c_str(), "auth") == 0) {
@@ -309,6 +314,83 @@ AsyncCallbackJsonWebHandler *networkHandler = new AsyncCallbackJsonWebHandler("/
 });
 
 /* -------------------
+    Websockets
+   ------------------- */
+void wsProcessMsg(void *arg, uint8_t *data, size_t len, AsyncWebSocketClient *client) {
+    AwsFrameInfo *info = (AwsFrameInfo*)arg;
+    if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+        data[len] = 0;
+
+        // Data retrieval
+        if (strcmp((char*)data, "GET_TUBES") == 0) {
+            StaticJsonDocument<256> response;
+            JsonObject t1 = response.createNestedObject(String(displayController.TubeVals[0][0]));
+                t1["val"] = displayController.TubeVals[0][1];
+                t1["pwm"] = displayController.TubeVals[0][2];
+            JsonObject t2 = response.createNestedObject(String(displayController.TubeVals[1][0]));
+                t2["val"] = displayController.TubeVals[1][1];
+                t2["pwm"] = displayController.TubeVals[1][2];
+            JsonObject t3 = response.createNestedObject(String(displayController.TubeVals[2][0]));
+                t3["val"] = displayController.TubeVals[2][1];
+                t3["pwm"] = displayController.TubeVals[2][2];
+            JsonObject t4 = response.createNestedObject(String(displayController.TubeVals[3][0]));
+                t4["val"] = displayController.TubeVals[3][1];
+                t4["pwm"] = displayController.TubeVals[3][2];
+
+            char data[105];
+            size_t len = serializeJson(response, data);
+            ws.text(client->id(), data, len);
+        }
+    
+        if (strcmp((char*)data, "GET_INDICATORS") == 0) {
+            StaticJsonDocument<100> response;
+            response["1"] = displayController.Indicators[0];
+            response["2"] = displayController.Indicators[1];
+
+            char data[23];
+            size_t len = serializeJson(response, data);
+            ws.text(client->id(), data, len);
+        }
+        
+        if (strcmp((char*)data, "GET_LEDS") == 0) {
+            StaticJsonDocument<128> response;
+
+            JsonObject objOled = response.createNestedObject("onboardLed");
+                objOled["pwm"] = displayController.OnboardLedPWM;
+                objOled["mode"] = displayController.OnboardLEDmode;
+                objOled["blinkAmount"] = displayController.OnboardLEDblinkAmount;
+                
+            response["leds"] = displayController.LedPWM;
+
+            char data[64];
+            size_t len = serializeJson(response, data);
+            ws.text(client->id(), data, len);
+        }
+    }
+}
+
+// Standard event handler
+void wsOnEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
+             void *arg, uint8_t *data, size_t len) {
+  switch (type) {
+      #ifdef DEBUG
+        case WS_EVT_CONNECT:
+            Serial.printf("WS new client #%u -> %s\n", client->id(), client->remoteIP().toString().c_str());
+            break;
+        case WS_EVT_DISCONNECT:
+            Serial.printf("WS lost client #%u.\n", client->id());
+            break;
+      #endif
+    case WS_EVT_DATA:
+        wsProcessMsg(arg, data, len, client);
+        break;
+    case WS_EVT_PONG:
+    case WS_EVT_ERROR:
+        break;
+  }
+}
+
+/* -------------------
     General functions
    ------------------- */
 
@@ -482,7 +564,18 @@ void webServerInit() {
 
     webServerAPIs();
     webServerStaticContent();
+    
+    ws.onEvent(wsOnEvent);
+    server.addHandler(&ws);
 
     AsyncElegantOTA.begin(&server);
     server.begin();
+}
+
+void taskWScleanup(void* params) {
+    for (;;) {
+        ws.cleanupClients();
+
+        vTaskDelay(1000);
+    }
 }
