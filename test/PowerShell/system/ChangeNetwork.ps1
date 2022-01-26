@@ -2,7 +2,7 @@ $t = @"
 {
 	"ipConfig": {
         "useDHCP": false,
-		"deviceIP": "192.168.1.195",
+		"deviceIP": "192.168.1.118",
 		"netmask": "255.255.255.0",
 		"gateway": "192.168.1.1",
         "dns": "192.168.1.1"
@@ -12,4 +12,8 @@ $t = @"
 
 $deviceIP = "192.168.1.118"
 $uri = "http://$deviceIP/api/network"
-Invoke-WebRequest $uri -method POST -contentType application/json -body $t
+$h = @{
+    'Authorization' = 'CODE'
+}
+
+Invoke-WebRequest $uri -method POST -contentType application/json -body $t -Headers $h
