@@ -10,7 +10,7 @@ long Timekeeper::NowEpoch;
 //  Defaults
 int Timekeeper::DstOffset = 3600;
 int Timekeeper::UtcOffset = 3600;
-const char* Timekeeper::NtpSource = "ch.pool.ntp.org";
+char Timekeeper::NtpSource[32];
 
 Timekeeper _timekeeper;
 
@@ -43,12 +43,10 @@ void Timekeeper::ParseNTPconfig(String ntpFile) {
 
             Serial.print("[X] RTC parser: Deserialization fault: "); Serial.println(err);
         } else {
-            //strlcpy(NtpSource, cfgNTP["NtpSource"], sizeof(NtpSource));
-            JsonVariant a = cfgNTP["NtpSource"];
             JsonVariant b = cfgNTP["DstOffset"];
             JsonVariant c = cfgNTP["UtcOffset"];
 
-            this->NtpSource = a.as<const char*>();
+            strlcpy(this->NtpSource, cfgNTP["NtpSource"], sizeof(this->NtpSource));
             this->DstOffset = b.as<int>();
             this->UtcOffset = c.as<int>();
         }
@@ -80,7 +78,6 @@ void taskTimekeeper(void *parameter) {
         if (!netConfig.IsAP) {
             timeClient.update();
             Timekeeper::NowEpoch = timeClient.getEpochTime();
-
         }
         
         vTaskDelay(4000);

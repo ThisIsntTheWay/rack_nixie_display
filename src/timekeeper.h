@@ -15,7 +15,7 @@ class Timekeeper {
         static int DstOffset;
         static int UtcOffset;
         static int UpdateInterval;
-        static const char* NtpSource;
+        static char NtpSource[32];
         static bool MountStatus;
         
         void ParseNTPconfig(String);
