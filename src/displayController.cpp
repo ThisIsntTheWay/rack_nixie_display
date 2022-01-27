@@ -1,4 +1,5 @@
 #include <displayController.h>
+#include <timekeeper.h>
 
 /* -------------------
     Vars
@@ -10,9 +11,10 @@ int DisplayController::TubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, 
 
 bool DisplayController::Indicators[2] = {true, true};
 bool DisplayController::AllowRESTcontrol = true;
+bool DisplayController::Clock = false;
 
-uint8_t DisplayController::LedPWM = 255;
-uint8_t DisplayController::OnboardLedPWM = 255;
+uint8_t DisplayController::LedPWM = 170;
+uint8_t DisplayController::OnboardLedPWM = 75;
 uint8_t DisplayController::OnboardLEDmode = 0;
 uint8_t DisplayController::OnboardLEDblinkAmount = 0;
 
@@ -25,30 +27,56 @@ void taskSetDisplay(void* parameter) {
         vTaskDelay(200);
     }
 
+    Timekeeper timekeeper;
+    int8_t lastSecond = 0;
+    int8_t nowSecond = 0;
+
     for (;;) {
         int t[4] = {11, 11, 11, 11};
 
-        // Initially populate t[]
-        for (int i = 0; i < 4; i++) {
-            uint8_t tubeIndex = DisplayController::TubeVals[i][0] - 1;
-            uint8_t tubeVal = DisplayController::TubeVals[i][1];
-            uint8_t tubePWM = DisplayController::TubeVals[i][2];
-            
-            if (tubeIndex > 3) {
-                Serial.println("INVALID TUBE INDEX.");
-                continue;
+        if (!DisplayController::Clock) {
+            // Initially populate t[]
+            for (int i = 0; i < 4; i++) {
+                int8_t tubeIndex = DisplayController::TubeVals[i][0] - 1;
+                int8_t tubeVal = DisplayController::TubeVals[i][1];
+                int8_t tubePWM = DisplayController::TubeVals[i][2];
+                
+                if (tubeIndex > 3) {
+                    Serial.println("INVALID TUBE INDEX.");
+                    continue;
+                }
+
+                t[tubeIndex] = tubeVal;
+
+                // Fully turn off tube instead of leaving cathodes floating.
+                if (tubeVal > 9) {
+                    ledcWrite(tubeIndex, 0);
+                } else {
+                    ledcWrite(tubeIndex, tubePWM);
+                }
+            }
+        } else {
+            // Native clock implementation
+            DisplayController::Indicators[0] = false;
+
+            t[0] = timekeeper.time.hours / 10;
+            t[1] = timekeeper.time.hours % 10;
+            t[2] = timekeeper.time.minutes / 10;
+            t[3] = timekeeper.time.minutes % 10;
+
+            // Invert indicator
+            nowSecond = timekeeper.time.seconds;
+            if (lastSecond != nowSecond) {
+                DisplayController::Indicators[1] = !DisplayController::Indicators[1];
+                lastSecond = nowSecond;
             }
 
-            t[tubeIndex] = tubeVal;
-
-            // Fully turn off tube instead of leaving cathodes floating.
-            if (tubeVal > 9) {
-                ledcWrite(tubeIndex, 0);
-            } else {
-                ledcWrite(tubeIndex, tubePWM);
+            for (int i = 0; i < 4; i++) {
+                int8_t tubePWM = DisplayController::TubeVals[i][2];
+                ledcWrite(i, tubePWM);
             }
         }
-
+        
         // Blank all tubes that were not considered. (Their index is missing in TubeVals)
         for (int i = 0; i < 4; i++) {
             if (t[i] == 11) {

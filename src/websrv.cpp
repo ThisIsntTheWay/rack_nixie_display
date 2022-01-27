@@ -467,12 +467,19 @@ void webServerStaticContent() {
             objOled["mode"] = displayController.OnboardLEDmode;
             objOled["blinkAmount"] = displayController.OnboardLEDblinkAmount;
             
+        JsonArray status = responseBody.createNestedArray("status");
+            if (displayController.Clock)    status.add("isClock");
+            if (authCode > 0)               status.add("authRequired");
+
         responseBody["leds"] = displayController.LedPWM;
-        
-        responseBody["authRequired"] = (authCode > 0) ? true : false;
 
         serializeJsonPretty(responseBody, *response);
         request->send(response);
+    });
+    
+    server.on("/api/clock", HTTP_GET, [](AsyncWebServerRequest *request) {
+        displayController.Clock = !displayController.Clock;
+        request->send(200, "text/plain", displayController.Clock ? "Now active" : "Now inactive");
     });
 }
 

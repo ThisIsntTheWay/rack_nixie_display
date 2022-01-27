@@ -12,7 +12,7 @@
 #define TUBE_LEDC_CHANNEL 14
 #define ONBOARD_LEDC_CHANNEL 15
 
-#define ONBOARD_LED_BLINK_INTERVAL 100
+#define ONBOARD_LED_BLINK_INTERVAL 250
 
 #include <Arduino.h>
 #include <nixies.h>
@@ -26,6 +26,7 @@ class DisplayController {
         static uint8_t OnboardLEDmode;
         static uint8_t OnboardLEDblinkAmount;
         static bool AllowRESTcontrol;
+        static bool Clock;
 };
 
 void taskSetDisplay(void* parameter);

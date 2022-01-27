@@ -2,12 +2,14 @@
 
 WiFiUDP ntpUDP;
 
+//  Statics
 bool Timekeeper::MountStatus = true;
 int Timekeeper::UpdateInterval = 60000;
 long Timekeeper::BootEpoch;
 long Timekeeper::NowEpoch;
 
-//  Defaults
+Timekeeper::Time Timekeeper::time;
+
 int Timekeeper::DstOffset = 3600;
 int Timekeeper::UtcOffset = 3600;
 char Timekeeper::NtpSource[32];
@@ -72,14 +74,18 @@ void taskTimekeeper(void *parameter) {
     timeClient.begin();
     timeClient.update();
 
-    Timekeeper::BootEpoch = timeClient.getEpochTime();
+    Timekeeper::BootEpoch = timeClient.getEpochTime(); 
 
     for (;;) {
         if (!netConfig.IsAP) {
             timeClient.update();
             Timekeeper::NowEpoch = timeClient.getEpochTime();
         }
+
+        Timekeeper::time.seconds = timeClient.getSeconds();
+        Timekeeper::time.minutes = timeClient.getMinutes();
+        Timekeeper::time.hours = timeClient.getHours();
         
-        vTaskDelay(4000);
+        vTaskDelay(1000);
     }
 }

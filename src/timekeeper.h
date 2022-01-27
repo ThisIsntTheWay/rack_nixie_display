@@ -19,6 +19,14 @@ class Timekeeper {
         static bool MountStatus;
         
         void ParseNTPconfig(String);
+
+        struct Time {
+            uint8_t seconds;
+            uint8_t minutes;
+            uint8_t hours;
+        };
+
+        static struct Time time;
 };
 
 void taskTimekeeper (void *parameter);
