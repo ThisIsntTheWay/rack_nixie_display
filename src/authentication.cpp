@@ -23,12 +23,6 @@ void Authentication::Initialize() {
     this->getAuthCode();
 }
 
-uint8_t Authentication::GetCodeGenFlag() {
-    this->authCodeGenerated = EEPROM.read(EEPROM_AUTH_GEN_FLAG_ADDR);
-
-    return this->authCodeGenerated;
-}
-
 /**************************************************************************/
 /*!
     @brief Sets the "authentication seen" flag in EEPROM.

@@ -10,7 +10,6 @@
 class Authentication {
     public:
         String GetAuthCode();
-        uint8_t GetCodeGenFlag();
         void Initialize();
         bool CanShowAuthCode();
         bool SetFlag();
