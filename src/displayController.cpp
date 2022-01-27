@@ -7,7 +7,7 @@
 
 Nixies nixies(DS_PIN, ST_PIN, SH_PIN);
 
-int DisplayController::TubeVals[4][3] = {{1, 9, 255}, {2, 9, 255}, {3, 9, 255}, {4, 9, 255}};
+int DisplayController::TubeVals[4][2] = {{9, 255}, {9, 255}, {9, 255}, {9, 255}};
 
 bool DisplayController::Indicators[2] = {true, true};
 bool DisplayController::AllowRESTcontrol = true;
@@ -37,22 +37,16 @@ void taskSetDisplay(void* parameter) {
         if (!DisplayController::Clock) {
             // Initially populate t[]
             for (int i = 0; i < 4; i++) {
-                int8_t tubeIndex = DisplayController::TubeVals[i][0] - 1;
-                int8_t tubeVal = DisplayController::TubeVals[i][1];
-                int8_t tubePWM = DisplayController::TubeVals[i][2];
-                
-                if (tubeIndex > 3) {
-                    Serial.println("INVALID TUBE INDEX.");
-                    continue;
-                }
+                int8_t tubeVal = DisplayController::TubeVals[i][0];
+                int8_t tubePWM = DisplayController::TubeVals[i][1];
 
-                t[tubeIndex] = tubeVal;
+                t[i] = tubeVal;
 
                 // Fully turn off tube instead of leaving cathodes floating.
                 if (tubeVal > 9) {
-                    ledcWrite(tubeIndex, 0);
+                    ledcWrite(i, 0);
                 } else {
-                    ledcWrite(tubeIndex, tubePWM);
+                    ledcWrite(i, tubePWM);
                 }
             }
         } else {
@@ -72,7 +66,7 @@ void taskSetDisplay(void* parameter) {
             }
 
             for (int i = 0; i < 4; i++) {
-                int8_t tubePWM = DisplayController::TubeVals[i][2];
+                int8_t tubePWM = DisplayController::TubeVals[i][1];
                 ledcWrite(i, tubePWM);
             }
         }

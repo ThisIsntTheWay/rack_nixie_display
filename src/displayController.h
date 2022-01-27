@@ -19,7 +19,7 @@
 
 class DisplayController {
     public:
-        static int TubeVals[4][3];
+        static int TubeVals[4][2];
         static bool Indicators[2];
         static uint8_t LedPWM;
         static uint8_t OnboardLedPWM;

@@ -143,9 +143,8 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
 
                 // All good, update displayController
                 tubeIndex--;
-                displayController.TubeVals[tubeIndex][0] = tubeIndex + 1; // Not really needed anymore, as all tubes are ordered already.
-                displayController.TubeVals[tubeIndex][1] = tube.value()["val"];
-                if (tubePWM != 999) displayController.TubeVals[tubeIndex][2] = tubePWM;
+                displayController.TubeVals[tubeIndex][0] = tube.value()["val"];
+                if (tubePWM != 999) displayController.TubeVals[tubeIndex][1] = tubePWM;
             }
             i++;
         }
@@ -406,18 +405,18 @@ void webServerStaticContent() {
         StaticJsonDocument<256> responseBody;
 
         JsonObject objTub = responseBody.createNestedObject("tubes");
-            JsonObject t1 = objTub.createNestedObject(String(displayController.TubeVals[0][0]));
-                t1["val"] = displayController.TubeVals[0][1];
-                t1["pwm"] = displayController.TubeVals[0][2];
-            JsonObject t2 = objTub.createNestedObject(String(displayController.TubeVals[1][0]));
-                t2["val"] = displayController.TubeVals[1][1];
-                t2["pwm"] = displayController.TubeVals[1][2];
-            JsonObject t3 = objTub.createNestedObject(String(displayController.TubeVals[2][0]));
-                t3["val"] = displayController.TubeVals[2][1];
-                t3["pwm"] = displayController.TubeVals[2][2];
-            JsonObject t4 = objTub.createNestedObject(String(displayController.TubeVals[3][0]));
-                t4["val"] = displayController.TubeVals[3][1];
-                t4["pwm"] = displayController.TubeVals[3][2];
+            JsonObject t1 = objTub.createNestedObject("1");
+                t1["val"] = displayController.TubeVals[0][0];
+                t1["pwm"] = displayController.TubeVals[0][1];
+            JsonObject t2 = objTub.createNestedObject("2");
+                t2["val"] = displayController.TubeVals[1][0];
+                t2["pwm"] = displayController.TubeVals[1][1];
+            JsonObject t3 = objTub.createNestedObject("2");
+                t3["val"] = displayController.TubeVals[2][0];
+                t3["pwm"] = displayController.TubeVals[2][1];
+            JsonObject t4 = objTub.createNestedObject("3");
+                t4["val"] = displayController.TubeVals[3][0];
+                t4["pwm"] = displayController.TubeVals[3][1];
         
         serializeJsonPretty(responseBody, *response);
         request->send(response);
@@ -449,18 +448,18 @@ void webServerStaticContent() {
             objInd["2"] = displayController.Indicators[1];
         
         JsonObject objTub = responseBody.createNestedObject("tubes");
-            JsonObject t1 = objTub.createNestedObject(String(displayController.TubeVals[0][0]));
-                t1["val"] = displayController.TubeVals[0][1];
-                t1["pwm"] = displayController.TubeVals[0][2];
-            JsonObject t2 = objTub.createNestedObject(String(displayController.TubeVals[1][0]));
-                t2["val"] = displayController.TubeVals[1][1];
-                t2["pwm"] = displayController.TubeVals[1][2];
-            JsonObject t3 = objTub.createNestedObject(String(displayController.TubeVals[2][0]));
-                t3["val"] = displayController.TubeVals[2][1];
-                t3["pwm"] = displayController.TubeVals[2][2];
-            JsonObject t4 = objTub.createNestedObject(String(displayController.TubeVals[3][0]));
-                t4["val"] = displayController.TubeVals[3][1];
-                t4["pwm"] = displayController.TubeVals[3][2];
+            JsonObject t1 = objTub.createNestedObject("1");
+                t1["val"] = displayController.TubeVals[0][0];
+                t1["pwm"] = displayController.TubeVals[0][1];
+            JsonObject t2 = objTub.createNestedObject("2");
+                t2["val"] = displayController.TubeVals[1][0];
+                t2["pwm"] = displayController.TubeVals[1][1];
+            JsonObject t3 = objTub.createNestedObject("3");
+                t3["val"] = displayController.TubeVals[2][0];
+                t3["pwm"] = displayController.TubeVals[2][1];
+            JsonObject t4 = objTub.createNestedObject("4");
+                t4["val"] = displayController.TubeVals[3][0];
+                t4["pwm"] = displayController.TubeVals[3][1];
                 
         JsonObject objOled = responseBody.createNestedObject("onboardLed");
             objOled["pwm"] = displayController.OnboardLedPWM;
