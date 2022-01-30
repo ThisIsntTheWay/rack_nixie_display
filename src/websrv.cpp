@@ -131,7 +131,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
             } else {
                 // Only update tubePWM if it actually exists.
                 int tubePWM = 999;
-                if (tube.value()["pwm"]) {
+                if (!tube.value()["pwm"].isNull()) {
                     tubePWM = tube.value()["pwm"].as<int>();
 
                     if ((tubePWM > 255) || (tubePWM < 0)) {
@@ -143,7 +143,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
 
                 // All good, update displayController
                 tubeIndex--;
-                if (tube.value()["val"]) displayController.TubeVals[tubeIndex][0] = tube.value()["val"];
+                if (!tube.value()["val"].isNull()) displayController.TubeVals[tubeIndex][0] = tube.value()["val"];
                 if (tubePWM != 999) displayController.TubeVals[tubeIndex][1] = tubePWM;
             }
             i++;
