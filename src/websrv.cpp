@@ -124,7 +124,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
             #endif
 
             // Sanity checks
-            if (tubeIndex > 4) {
+            if (tubeIndex > 4 || tubeIndex < 1) {
                 errorEncountered = true;
                 errMsg += "An unknown tube index has been specified: " + String(tubeIndex) + ".";
                 break;
@@ -143,7 +143,7 @@ AsyncCallbackJsonWebHandler *displayHandler = new AsyncCallbackJsonWebHandler("/
 
                 // All good, update displayController
                 tubeIndex--;
-                displayController.TubeVals[tubeIndex][0] = tube.value()["val"];
+                if (tube.value()["val"]) displayController.TubeVals[tubeIndex][0] = tube.value()["val"];
                 if (tubePWM != 999) displayController.TubeVals[tubeIndex][1] = tubePWM;
             }
             i++;
