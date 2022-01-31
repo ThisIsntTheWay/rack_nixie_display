@@ -328,7 +328,6 @@ bool NetworkConfig::WriteWiFiConfig(const char* ssid, const char* psk) {
     return true;
 }
 
-
 /**************************************************************************/
 /*!
     @brief (Overload 2) Write to network configuration file.
@@ -352,7 +351,6 @@ bool NetworkConfig::WriteWiFiConfig(bool IsAP) {
     netConfig.close();
     return true;
 }
-
 
 /**************************************************************************/
 /*!
