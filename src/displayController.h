@@ -12,7 +12,8 @@
 #define TUBE_LEDC_CHANNEL 14
 #define ONBOARD_LEDC_CHANNEL 15
 
-#define ONBOARD_LED_BLINK_INTERVAL 250
+#define ONBOARD_LED_BLINK_INTERVAL 200
+#define ONBOARD_LED_PULSE_INTERVAL 5
 
 #include <Arduino.h>
 #include <nixies.h>

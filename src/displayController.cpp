@@ -147,15 +147,19 @@ void taskSetStatusLED(void* parameter) {
                 break;
             case 3: {
                 // Pulsate
-                // Duty cycles above 170 are hardly perceived as brighter, so this value serves as the ceiling.
-                uint8_t maxPWM = 170;
+                // Duty cycles above 150 are hardly perceived as brighter, so this value serves as the ceiling.
+                uint8_t maxPWM = 150;
                 for (int i = 0; i < maxPWM; i++) {
+                    if (DisplayController::OnboardLEDmode != 3) break;
+
                     ledcWrite(ONBOARD_LEDC_CHANNEL, i);
-                    vTaskDelay(10);
+                    vTaskDelay(ONBOARD_LED_PULSE_INTERVAL);
                 }
                 for (int i = 170; i > 0; i--) {
+                    if (DisplayController::OnboardLEDmode != 3) break;
+
                     ledcWrite(ONBOARD_LEDC_CHANNEL, i);
-                    vTaskDelay(10);
+                    vTaskDelay(ONBOARD_LED_PULSE_INTERVAL);
                 }
                 break;
             }
