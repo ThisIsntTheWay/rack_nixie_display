@@ -345,11 +345,15 @@ void webServerStaticContent() {
         StaticJsonDocument<300> responseBody;
         responseBody["buildTime"] = buildTime;
         responseBody["uptime"] = String(timekeeper.NowEpoch - timekeeper.BootEpoch);
-        responseBody["NtpSource"] = timekeeper.NtpSource;
-        responseBody["UtcOffset"] = timekeeper.UtcOffset;
+        responseBody["ntpSource"] = timekeeper.NtpSource;
+        responseBody["utcOffset"] = timekeeper.UtcOffset;
 
-        if (!timekeeper.MountStatus) {
-            responseBody["warning"] = String("The filesystem was not mounted.");
+        switch (WiFi.status()) {
+            case WL_CONNECTED: responseBody["wifi"] = WiFi.RSSI(); break;
+            case WL_DISCONNECTED:  responseBody["wifi"] = "disconnected"; break;
+            case WL_CONNECT_FAILED: responseBody["wifi"] = "connectFailed"; break;
+            case WL_NO_SSID_AVAIL: responseBody["wifi"] = "ssidNotFound"; break;
+            default: responseBody["wifi"] = "unknownState"; break;
         }
         
         serializeJsonPretty(responseBody, *response);
