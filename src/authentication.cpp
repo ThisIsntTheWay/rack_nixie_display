@@ -99,8 +99,8 @@ String Authentication::GetAuthCode() {
 
 /**************************************************************************/
 /*!
-    @brief Retrieves the current authCode as stored in the class.
-    @return String of authentication code.
+    @brief Checks if the auth code can be seen or not.
+    @return TRUE if not yet seen, FALSE if seen already.
 */
 /**************************************************************************/
 bool Authentication::CanShowAuthCode() {
@@ -110,7 +110,5 @@ bool Authentication::CanShowAuthCode() {
     Serial.printf("FLAG READ: %d\n", this->authCodeSeen);
 #endif
 
-    if (this->authCodeSeen == 1) return false;
-
-    return true;
+    return (this->authCodeSeen != 1);
 }
