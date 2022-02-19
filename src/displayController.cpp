@@ -35,7 +35,7 @@ void taskSetDisplay(void* parameter) {
         int t[4] = {11, 11, 11, 11};
 
         if (!DisplayController::Clock) {
-            // Initially populate t[]
+            // Normal operation
             for (int i = 0; i < 4; i++) {
                 int8_t tubeVal = DisplayController::TubeVals[i][0];
                 int8_t tubePWM = DisplayController::TubeVals[i][1];
@@ -43,11 +43,8 @@ void taskSetDisplay(void* parameter) {
                 t[i] = tubeVal;
 
                 // Fully turn off tube instead of leaving cathodes floating.
-                if (tubeVal > 9) {
-                    ledcWrite(i, 0);
-                } else {
-                    ledcWrite(i, tubePWM);
-                }
+                if (tubeVal > 9)    { ledcWrite(i, 0); }
+                else                { ledcWrite(i, tubePWM); }
             }
         } else {
             // Native clock implementation

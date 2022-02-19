@@ -18,9 +18,9 @@ Timekeeper _timekeeper;
 
 void Timekeeper::ParseNTPconfig(String ntpFile) {
     if (!LITTLEFS.exists(ntpFile)) {
+        // Construct default config
         File ntpConfig = LITTLEFS.open(ntpFile, "w");
 
-        // Construct JSON
         StaticJsonDocument<200> cfgNTP;
 
         const char* NtpSource = "ch.pool.ntp.org";
@@ -35,9 +35,9 @@ void Timekeeper::ParseNTPconfig(String ntpFile) {
 
         ntpConfig.close();
     } else {
+        // Parse existing config
         File ntpConfig = LITTLEFS.open(ntpFile, "r");
         
-        // Parse JSON
         StaticJsonDocument<250> cfgNTP;
         DeserializationError error = deserializeJson(cfgNTP, ntpConfig);
         if (error) {
