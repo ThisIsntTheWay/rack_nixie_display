@@ -406,7 +406,7 @@ void webServerStaticContent() {
     // Only display tube status
     server.on("/api/display/tubes", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
-        StaticJsonDocument<256> responseBody;
+        StaticJsonDocument<300> responseBody;
 
         JsonObject objTub = responseBody.createNestedObject("tubes");
             JsonObject t1 = objTub.createNestedObject("1");
