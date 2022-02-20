@@ -52,5 +52,5 @@ while ($true) {
     Invoke-RestMethod -Method POST -uri $uri -ContentType application/json -body ($b | convertto-json) | out-null
     if ($?) { Write-Host " > Update OK " -fore green }
 
-    Start-Sleep -s 120
+    Start-Sleep -s 1
 }
