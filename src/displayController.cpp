@@ -34,7 +34,6 @@ void taskSetDisplay(void* parameter) {
     for (;;) {
         int t[4] = {11, 11, 11, 11};
 
-<<<<<<< Updated upstream
         if (!DisplayController::Clock) {
             // Normal operation
             for (int i = 0; i < 4; i++) {
@@ -48,9 +47,7 @@ void taskSetDisplay(void* parameter) {
                 else                { ledcWrite(i, tubePWM); }
             }
         } else {
-=======
         if (DisplayController::Clock) {
->>>>>>> Stashed changes
             // Native clock implementation
             DisplayController::Indicators[0] = false;
 
