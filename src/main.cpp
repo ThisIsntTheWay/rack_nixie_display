@@ -10,9 +10,10 @@
 /* -----------------------
             VARS
    ----------------------- */
-#define EEPROM_REGION 256
-#define INTERACT_BUTTON_PIN 21
-#define RESET_DELAY_MS 5000
+#define EEPROM_REGION         256
+#define INTERACT_BUTTON_PIN   21
+#define RESET_DELAY_MS        5000
+#define BAUD_RATE             115200
 
 TaskHandle_t taskDisplay;
 TaskHandle_t taskIndicator;
@@ -22,13 +23,13 @@ TaskHandle_t taskTime;
 
 bool buttonState = true;
 bool buttonIsBeingPressed = false;
-
+ 
 /* -----------------------
             MAIN
    ----------------------- */
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(BAUD_RATE);
 
   DisplayController dController;
   xTaskCreate(taskSetStatusLED, "O_LED daemon", 4000, NULL, 4, &taskOLed);
