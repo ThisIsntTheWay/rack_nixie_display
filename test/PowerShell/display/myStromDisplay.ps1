@@ -1,6 +1,11 @@
+Param(
+    [string] $NixieIP,
+    [string] $MyStromIP,
+    [int] $TubePWM
+)
+
 $ProgressPreference = 'SilentlyContinue'
-$targetIP = "192.168.1.176"
-$uri = "http://$targetIP/api/display"
+$uri = "http://$NixieIP/api/display"
 
 function Create-RequestBody([int[]]$ingress) {
     return @{
@@ -25,28 +30,33 @@ function Get-TubeArr([int]$integer) {
 }
 
 # ---------------------------------------------------------------------------------------------
-Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
-        "onboardLed" = @{ "mode" = 3}
-        "indicators" = @{ "1" = $true; "2" = $false }
+try {
+    Write-Host "Setting onboardLed and indicators..." -f cyan
+    Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
+            "onboardLed" = @{ "mode" = 3}
+            "indicators" = @{ "1" = $true; "2" = $false }
+        } | ConvertTo-Json)
+    
+    # Brightness control
+    $tubePwmBody = @{
+        "1" = @{ "pwm" = $TubePwm }
+        "2" = @{ "pwm" = $TubePwm }
+        "3" = @{ "pwm" = $TubePwm }
+        "4" = @{ "pwm" = $TubePwm }
+    }
+    
+    Write-Host "Setting tube PWM..." -f cyan
+    irm $uri -Method POST -ContentType application/json -body (@{
+        "tubes" = $tubePwmBody
     } | ConvertTo-Json)
 
-# Brightness control
-$tubePwm = 50
-$tubePwmBody = @{
-    "1" = @{ "pwm" = $tubePwm }
-    "2" = @{ "pwm" = $tubePwm }
-    "3" = @{ "pwm" = $tubePwm }
-    "4" = @{ "pwm" = $tubePwm }
+} catch {
+    throw "Error: $_"
 }
-
-irm $uri -Method POST -ContentType application/json -body (@{
-    "tubes" = $tubePwmBody
-} | ConvertTo-Json)
 
 while ($true) {
     # Get power reading from myStrom
-    $myStromSwitch = "192.168.1.169"
-    $powerReading = [math]::Round((irm http://$myStromSwitch/report).power, 1)
+    $powerReading = [math]::Round((irm http://MyStromIp/report).power, 1)
     
     $tAsArray = Get-TubeArr $powerReading
     
