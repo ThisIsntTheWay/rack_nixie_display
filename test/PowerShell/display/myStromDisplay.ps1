@@ -31,7 +31,7 @@ Invoke-RestMethod -uri $uri -Method POST -contenttype application/json -body (@{
     } | ConvertTo-Json)
 
 # Brightness control
-$tubePwm = 1
+$tubePwm = 50
 $tubePwmBody = @{
     "1" = @{ "pwm" = $tubePwm }
     "2" = @{ "pwm" = $tubePwm }
@@ -40,7 +40,7 @@ $tubePwmBody = @{
 }
 
 irm $uri -Method POST -ContentType application/json -body (@{
-    "tubes" = $tubesPwmBody
+    "tubes" = $tubePwmBody
 } | ConvertTo-Json)
 
 while ($true) {
